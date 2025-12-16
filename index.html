@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digimon Online</title>
+    <link rel="stylesheet" href="style.css ">
+</head>
+<body>
+    <head class="header">
+        <h1>Digimon Online</h1>
+    <div class="controls">
+        <input id="search" type="search" placeholder="Buscar por nome...">
+    <select id="levelFilter">
+        <option value="">Todos os Níveis</option>
+        <option value="In Training">In Training</option>
+        <option value="Rookie">Rookie</option>
+        <option value="Champion">Champion</option>
+        <option value="Ultimate">Ultimate</option>
+        <option value="Mega">Mega</option>
+    </select>
+  </div>
+ </header>
+
+<main>
+    <div id="status" class="Carregando Digimon..."></div>
+    <div id="gallery" class="gallery" ></div>
+</main>
+
+<template id="cardTemplate">
+    <article class="card">
+        <img class="card-img" alt="">
+        <div class="card-body">
+            <h2 class="card-title"></h2>
+            <p class="card-level"></p>
+
+            <div class="stats" >
+                <div class="stat">
+                    <label> ⚔️ATK </label>
+                    <div class="bar"><div class="bar-fill atk" style="width:0%;" ></div> </div>
+                <span class="stat-value atk-value">0</span>
+                </div>
+
+                <div class="stat">
+                    <label> 🛡️DEF </label>
+                    <div class="bar"><div class="bar-fill def" style="width:0%;" ></div> </div>
+                    <span class="stat-value def-value">0</span>
+                </div>
+
+                <div class="stat"> 
+                    <label> ✨EPS </label> 
+                    <div class="bar"><div class="bar-fill eps" style="width:0%;" ></div> </div>
+                    <span class="stat-value eps-value">0</span>
+                </div>
+            </div>
+        </div>
+        </article>
+        </template>
+ 
+
+<script src="script.js"></script>
+
+</body>
+</html>

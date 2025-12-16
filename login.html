@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Digimon Cards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        
+        body.bg-digimon {
+            background-image: url('image/digimonw2.jpg');
+            background-size: cover;
+            background-position: center; 
+            background-repeat:round;
+        }
+        
+        @media (min-width: 1024px) {
+            body.bg-digimon {
+                background-size: 60%;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center h-screen bg-digimon">
+
+    <div class="bg-gray-800 p-10 rounded-2xl shadow-xl w-96 text-center">
+        <h1 class="text-3xl font-bold mb-6">Bem-vindo!</h1>
+        <p class="mb-4 text-gray-300">Acesse sua conta Digimon Online</p>
+
+      
+        <input id="emailLogin" type="email" placeholder="Email"
+            class="w-full p-3 rounded-lg mb-3 text-black">
+        
+        <input id="passwordLogin" type="password" placeholder="Senha"
+            class="w-full p-3 rounded-lg mb-4 text-black">
+
+        <button id="loginBtn"
+            class="w-full bg-yellow-500 hover:bg-yellow-600 py-3 rounded-xl text-lg font-bold shadow-md mb-4">
+            Entrar
+        </button>
+
+        <div class="my-4 text-gray-400">ou</div>
+
+        
+        <button id="goToSignup"
+            class="w-full bg-green-600 hover:bg-green-700 py-3 rounded-xl text-lg font-bold shadow-md mb-3">
+            Criar conta
+        </button>
+
+        
+        <button id="googleSignup"
+            class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-xl text-lg font-bold shadow-md">
+            Criar conta com Gmail
+        </button>
+        <div id="login-feedback" class="mt-3 text-sm text-red-500"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script>
+        
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY",
+            authDomain: "SEU_AUTH_DOMAIN",
+            projectId: "SEU_PROJECT_ID",
+            storageBucket: "SEU_BUCKET",
+            messagingSenderId: "SEU_SENDER_ID",
+            appId: "SEU_APP_ID"
+        };
+        
+        let auth = null;
+        let firebaseReady = false;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            firebaseReady = true;
+            console.log('Firebase iniciado com sucesso.');
+        } catch (err) {
+            console.warn('Firebase não inicializado:', err);
+        }
+
+        const feedbackEl = document.getElementById('login-feedback');
+
+        
+        document.getElementById("loginBtn").addEventListener("click", (e) => {
+            e.preventDefault();
+            console.log('loginBtn clicked');
+            const email = document.getElementById("emailLogin").value.trim();
+            const senha = document.getElementById("passwordLogin").value;
+
+            
+            if (!email || !senha) {
+                feedbackEl.textContent = 'Preencha email e senha.';
+                return;
+            }
+
+            
+            // Em produção utilize (firebaseReady && auth)
+        if (false) {
+    auth.signInWithEmailAndPassword(email, senha)
+      .then(() => window.location.href = "index.html");
+} else {
+    if (email === 'teste@teste.com' && senha === '1234') {
+        window.location.href = 'index.html';
+    } else {
+        feedbackEl.textContent = 'Login inválido (teste: teste@teste.com / 1234)';
+    }
+}
+        });
+        document.getElementById("goToSignup").addEventListener("click", () => {
+            window.location.href = "signup.html";
+        });
+
+        
+        document.getElementById("googleSignup").addEventListener("click", () => {
+            if (!firebaseReady || !auth) {
+                feedbackEl.textContent = 'Google Sign-In não disponível: Firebase não configurado.';
+                return;
+            }
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then(() => window.location.href = "index.html")
+                .catch(err => {
+                    console.error('Erro Google Sign-In:', err);
+                    feedbackEl.textContent = 'Erro no Google: ' + err.message;
+                });
+        });
+    </script>
+
+</body>
+</html>
