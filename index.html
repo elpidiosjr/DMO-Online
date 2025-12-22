@@ -7,20 +7,24 @@
     <link rel="stylesheet" href="style.css ">
 </head>
 <body>
-    <head class="header">
+    <header class="header">
+      <div class="header-left">
+        <div class="controls">
+          <input id="search" type="search" placeholder="Buscar por nome...">
+          <select id="levelFilter">
+            <option value="">Todos os Níveis</option>
+            <option value="In Training">In Training</option>
+            <option value="Rookie">Rookie</option>
+            <option value="Champion">Champion</option>
+            <option value="Ultimate">Ultimate</option>
+            <option value="Mega">Mega</option>
+          </select>
+        </div>
         <h1>Digimon Online</h1>
-    <div class="controls">
-        <input id="search" type="search" placeholder="Buscar por nome...">
-    <select id="levelFilter">
-        <option value="">Todos os Níveis</option>
-        <option value="In Training">In Training</option>
-        <option value="Rookie">Rookie</option>
-        <option value="Champion">Champion</option>
-        <option value="Ultimate">Ultimate</option>
-        <option value="Mega">Mega</option>
-    </select>
-  </div>
- </header>
+      </div>
+
+      <a href="account.html" class="btn-account"><img src="image/myacc.png" alt="Minha Conta" class="account-icon"> <span class="account-text">Minha Conta</span></a>
+    </header>
 
 <main>
     <div id="status" class="Carregando Digimon..."></div>

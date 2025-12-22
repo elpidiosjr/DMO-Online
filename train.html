@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Treinar Digimon</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial;background:#0f172a;color:#fff;padding:18px}
+    .card{max-width:520px;margin:16px auto;background:rgba(255,255,255,0.03);padding:18px;border-radius:10px}
+    img{max-width:180px;height:180px;object-fit:contain;background:#fff;padding:8px;border-radius:8px}
+    .controls{display:flex;gap:8px;margin-top:12px}
+    button{background:#06b6d4;border:none;padding:8px 12px;color:#012;text-decoration:none;border-radius:6px;cursor:pointer}
+    .muted{color:#bbb;font-size:14px}
+  </style>
+</head>
+<body>
+  <a href="index.html" style="color:#fff;text-decoration:none">← Voltar</a>
+  <h1>Treinar Digimon</h1>
+  <div id="content" class="card">Carregando...</div>
+
+<script>
+  const API_URL = 'https://digimon-api.vercel.app/api/digimon';
+
+  function qs(name){
+    const params = new URLSearchParams(location.search);
+    return params.get(name);
+  }
+
+  function generateStats(digimon){
+    const levelWeight = {
+      'Fresh': 0.6,
+      'In Training': 0.75,
+      'In-Training': 0.75,
+      'Rookie': 0.9,
+      'Champion': 1.05,
+      'Ultimate': 1.2,
+      'Mega': 1.35
+    };
+    let hash = 0;
+    for (let i=0;i<digimon.name.length;i++){ hash = ((hash<<5)-hash) + digimon.name.charCodeAt(i); hash |= 0 }
+    const abs = Math.abs(hash);
+    const base = 30 + (abs % 40);
+    const weight = levelWeight[digimon.level] || 0.95;
+    const atk = Math.min(100, Math.round((base + (abs % 25)) * weight));
+    const def = Math.min(100, Math.round((base + ((abs >> 3) % 25)) * weight));
+    const esp = Math.min(100, Math.round((base + ((abs >> 6) % 25)) * weight));
+    return {atk,def,esp};
+  }
+
+  function getSavedStats(name){
+    try{ const raw = localStorage.getItem('digimon_stats_v1'); if(!raw) return null; const map = JSON.parse(raw); return map[name]||null }catch(e){return null}
+  }
+  function saveStats(name, stats){
+    try{ const raw = localStorage.getItem('digimon_stats_v1'); const map = raw?JSON.parse(raw):{}; map[name]=stats; localStorage.setItem('digimon_stats_v1', JSON.stringify(map)); }catch(e){console.warn(e)}
+  }
+
+  async function init(){
+    const name = qs('name');
+    if(!name){ document.getElementById('content').textContent='Nenhum Digimon especificado.'; return }
+    const content = document.getElementById('content');
+    content.innerHTML = 'Carregando...';
+
+    // fetch all and find
+    let dlist = [];
+    try{ const res = await fetch(API_URL); dlist = await res.json() }catch(e){ console.warn('Erro API',e) }
+    const dig = dlist.find(x=>x.name.toLowerCase()===name.toLowerCase());
+    const baseDig = dig || { name: name, img: '', level: 'Unknown' };
+
+    let saved = getSavedStats(baseDig.name);
+    if(!saved){ saved = generateStats(baseDig); }
+
+    function render(){
+      content.innerHTML = '';
+      const el = document.createElement('div');
+      el.style.display='flex'; el.style.gap='12px'; el.style.alignItems='center';
+      const img = document.createElement('img'); img.src = baseDig.img || ''; img.alt = baseDig.name;
+      const info = document.createElement('div');
+      info.innerHTML = `<h2 style="margin:0">${baseDig.name}</h2><div class="muted">Nível: ${baseDig.level}</div>`;
+      el.appendChild(img); el.appendChild(info);
+      content.appendChild(el);
+
+      const statsBox = document.createElement('div'); statsBox.style.marginTop='12px';
+      function statRow(label,valKey){
+        const row = document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.justifyContent='space-between'; row.style.marginTop='6px';
+        row.innerHTML = `<div>${label}</div><div><strong id="${valKey}">${saved[valKey]}</strong> <button data-inc="${valKey}" style="margin-left:8px">+1</button></div>`;
+        return row;
+      }
+      statsBox.appendChild(statRow('⚔️ ATK','atk'));
+      statsBox.appendChild(statRow('🛡️ DEF','def'));
+      statsBox.appendChild(statRow('✨ ESP','esp'));
+      content.appendChild(statsBox);
+
+      const controls = document.createElement('div'); controls.className='controls'; controls.style.marginTop='14px';
+      const trainBtn = document.createElement('button'); trainBtn.textContent='Treinar (+5 aleatório)';
+      const saveBtn = document.createElement('button'); saveBtn.textContent='Salvar';
+      const resetBtn = document.createElement('button'); resetBtn.textContent='Resetar';
+      controls.appendChild(trainBtn); controls.appendChild(saveBtn); controls.appendChild(resetBtn);
+      content.appendChild(controls);
+
+      // attach button listeners
+      content.querySelectorAll('button[data-inc]').forEach(b=>b.addEventListener('click', ()=>{ const k=b.getAttribute('data-inc'); saved[k]=Math.min(100, saved[k]+1); document.getElementById(k).textContent=saved[k]; }));
+
+      trainBtn.addEventListener('click', ()=>{
+        const keys=['atk','def','esp']; const k = keys[Math.floor(Math.random()*keys.length)]; saved[k]=Math.min(100,saved[k]+5); document.getElementById(k).textContent=saved[k];
+      });
+      saveBtn.addEventListener('click', ()=>{ saveStats(baseDig.name, saved); alert('Progresso salvo!'); });
+      resetBtn.addEventListener('click', ()=>{ if(confirm('Resetar para valores base?')){ saved=generateStats(baseDig); document.getElementById('atk').textContent=saved.atk; document.getElementById('def').textContent=saved.def; document.getElementById('esp').textContent=saved.esp; }});
+
+      // quick link to account
+      const a = document.createElement('div'); a.style.marginTop='12px'; a.innerHTML = '<a href="account.html" style="color:#fff;text-decoration:underline">Ir para Minha Conta</a>';
+      content.appendChild(a);
+    }
+
+    render();
+  }
+
+  init();
+</script>
+</body>
+</html>

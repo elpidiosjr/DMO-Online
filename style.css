@@ -24,11 +24,38 @@ body{
   justify-content:space-between;
   margin-bottom:18px;
 }
+
+.header-left{ display:flex; align-items:center; gap:12px; }
+
 .header h1{margin:0;font-size:1.5rem;color:var(--accent)}
 
 .controls{
   display:flex;
   gap:8px;
+  align-items:center;
+}
+
+.btn-account{ padding:6px 10px; background:#021539; color:#fff; border-radius:6px; text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:8px }
+
+/* use mask so the icon shape shows; render the figure in white so it contrasts on the dark button */
+.btn-account .account-icon{ width:22px; height:22px; border-radius:6px; background:#fff; display:inline-block; -webkit-mask-image: url('./image/myacc.png'); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; mask-image: url('./image/myacc.png'); mask-size: contain; mask-repeat: no-repeat; mask-position: center; box-shadow: 0 1px 0 rgba(0,0,0,0.25) inset }
+
+/* fallback: show the original PNG when mask isn't supported */
+.btn-account .account-img{ display:none; width:22px; height:22px; object-fit:contain; border-radius:6px; background:#fff; padding:3px }
+
+@supports not (-webkit-mask-image: url('./image/myacc.png')) {
+  .btn-account .account-img{ display:inline-block }
+  .btn-account .account-icon{ display:none }
+}
+
+.btn-account .account-text{ white-space:nowrap }
+
+/* make search smaller on narrow screens */
+.controls input{ min-width:160px }
+@media (max-width:640px){
+  .header{ flex-direction:column; align-items:flex-start; gap:10px }
+  .header-left{ width:100%; justify-content:space-between }
+  .controls input{ min-width:120px }
 }
 
 #levelFilter{

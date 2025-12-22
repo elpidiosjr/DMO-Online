@@ -7,16 +7,21 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         
+        /* Background com overlay para melhorar legibilidade */
         body.bg-digimon {
-            background-image: url('image/digimonw2.jpg');
+            background-image: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url('./image/digimonw4.jpg');
             background-size: cover;
-            background-position: center; 
-            background-repeat:round;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-color: #0f172a; 
         }
-        
-        @media (min-width: 1024px) {
+
+        /* Imagem alternativa para telas pequenas (melhora performance/responsividade) */
+        @media (max-width: 640px) {
             body.bg-digimon {
-                background-size: 60%;
+                background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('./image/digimonw4.jpg');
+                background-position: center;
             }
         }
     </style>
@@ -27,17 +32,20 @@
         <h1 class="text-3xl font-bold mb-6">Bem-vindo!</h1>
         <p class="mb-4 text-gray-300">Acesse sua conta Digimon Online</p>
 
-      
-        <input id="emailLogin" type="email" placeholder="Email"
-            class="w-full p-3 rounded-lg mb-3 text-black">
-        
-        <input id="passwordLogin" type="password" placeholder="Senha"
-            class="w-full p-3 rounded-lg mb-4 text-black">
+        <form id="loginForm" class="space-y-3" novalidate>
+            <label for="emailLogin" class="sr-only">Email</label>
+            <input id="emailLogin" name="email" type="email" autocomplete="email" placeholder="Email" required
+                class="w-full p-3 rounded-lg text-black">
+            
+            <label for="passwordLogin" class="sr-only">Senha</label>
+            <input id="passwordLogin" name="password" type="password" autocomplete="current-password" placeholder="Senha" required
+                class="w-full p-3 rounded-lg text-black">
 
-        <button id="loginBtn"
-            class="w-full bg-yellow-500 hover:bg-yellow-600 py-3 rounded-xl text-lg font-bold shadow-md mb-4">
-            Entrar
-        </button>
+            <button type="submit" id="loginBtn"
+                class="w-full bg-yellow-500 hover:bg-yellow-600 py-3 rounded-xl text-lg font-bold shadow-md mb-4">
+                Entrar
+            </button>
+        </form>
 
         <div class="my-4 text-gray-400">ou</div>
 
@@ -52,7 +60,7 @@
             class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-xl text-lg font-bold shadow-md">
             Criar conta com Gmail
         </button>
-        <div id="login-feedback" class="mt-3 text-sm text-red-500"></div>
+        <div id="login-feedback" role="alert" aria-live="polite" class="mt-3 text-sm text-red-500"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -83,30 +91,38 @@
         const feedbackEl = document.getElementById('login-feedback');
 
         
-        document.getElementById("loginBtn").addEventListener("click", (e) => {
+        document.getElementById("loginForm").addEventListener("submit", (e) => {
             e.preventDefault();
-            console.log('loginBtn clicked');
+            console.log('loginForm submit');
             const email = document.getElementById("emailLogin").value.trim();
             const senha = document.getElementById("passwordLogin").value;
 
-            
             if (!email || !senha) {
                 feedbackEl.textContent = 'Preencha email e senha.';
                 return;
             }
 
-            
+            // validação simples de email (HTML5 também faz validação, mas isso dá feedback imediato)
+            if (!/\S+@\S+\.\S+/.test(email)) {
+                feedbackEl.textContent = 'Informe um email válido.';
+                return;
+            }
+
             // Em produção utilize (firebaseReady && auth)
-        if (false) {
-    auth.signInWithEmailAndPassword(email, senha)
-      .then(() => window.location.href = "index.html");
-} else {
-    if (email === 'teste@teste.com' && senha === '1234') {
-        window.location.href = 'index.html';
-    } else {
-        feedbackEl.textContent = 'Login inválido (teste: teste@teste.com / 1234)';
-    }
-}
+            if (false) {
+                auth.signInWithEmailAndPassword(email, senha)
+                    .then(() => window.location.href = "index.html")
+                    .catch(err => {
+                        console.error('Erro no signIn:', err);
+                        feedbackEl.textContent = 'Erro: ' + err.message;
+                    });
+            } else {
+                if (email === 'teste@teste.com' && senha === '1234') {
+                    window.location.href = 'index.html';
+                } else {
+                    feedbackEl.textContent = 'Login inválido (teste: teste@teste.com / 1234)';
+                }
+            }
         });
         document.getElementById("goToSignup").addEventListener("click", () => {
             window.location.href = "signup.html";

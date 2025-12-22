@@ -89,10 +89,7 @@ async function loadDigimons() {
     status.textContent = `Encontrados ${digimons.length} Digimon(s)`;
     renderGallery(filteredList);
     ensureArenaUI();
-  } catch (err) {
-    console.error(err);
-    status.textContent = 'Falha ao carregar Digimon. Veja console.';
-  }
+  } catch (e) {}
 }
 
 
@@ -155,7 +152,7 @@ function renderGallery(list) {
 
  
     card.addEventListener('click', () => {
-      toggleSelectDigimon({ name: d.name, img: d.img, stats });
+      toggleSelectDigimon({ name: d.name, img: d.img, stats, level: d.level });
  
       const inSel = selected.find(s => s.name === d.name);
       if (inSel) card.classList.add('selected-card'); else card.classList.remove('selected-card');
@@ -204,57 +201,28 @@ function ensureArenaUI() {
   arenaRoot.style.flexWrap = 'wrap';
 
   
-  const slotA = document.createElement('div');
-  slotA.id = 'slotA';
-  slotA.style.minWidth = '200px';
-  slotA.style.padding = '8px';
-  slotA.style.borderRadius = '8px';
-  slotA.style.background = 'rgba(255,255,255,0.02)';
-  slotA.style.textAlign = 'center';
 
-  const vs = document.createElement('div');
-  vs.innerHTML = '<strong>ARENA</strong>';
-  vs.style.minWidth = '120px';
-  vs.style.textAlign = 'center';
 
-  const slotB = document.createElement('div');
-  slotB.id = 'slotB';
-  slotB.style.minWidth = '200px';
-  slotB.style.padding = '8px';
-  slotB.style.borderRadius = '8px';
-  slotB.style.background = 'rgba(255,255,255,0.02)';
-  slotB.style.textAlign = 'center';
+  // botão Treinar (aparece quando 1 digimon selecionado e nível In Training)
+  const trainBtn = document.createElement('button');
+  trainBtn.textContent = 'Treinar';
+  trainBtn.id = 'trainBtn';
+  trainBtn.className = 'btn-train';
+  trainBtn.style.padding = '6px 10px';
+  trainBtn.style.borderRadius = '8px';
+  trainBtn.style.cursor = 'pointer';
+  trainBtn.disabled = true;
+  trainBtn.style.opacity = '0.6';
+  trainBtn.addEventListener('click', () => {
 
-  // botões
-  const fightBtn = document.createElement('button');
-  fightBtn.textContent = 'Lutar';
-  fightBtn.className = 'btn-fight';
-  fightBtn.style.padding = '8px 12px';
-  fightBtn.style.borderRadius = '8px';
-  fightBtn.style.cursor = 'pointer';
-  fightBtn.addEventListener('click', () => {
-    if (selected.length < 2) {
-      alert('Selecione dois Digimon para lutar (clique em dois cards).');
+    if (!/in[- ]?training/i.test(level)) {
+      alert('Apenas Digimon de nível "In Training" podem ser treinados.');
       return;
     }
-    const result = simulateBattle(selected[0], selected[1]);
-    showBattleResult(result);
+    window.location.href = 'train.html?name=' + encodeURIComponent(selected[0].name);
   });
 
-  const clearBtn = document.createElement('button');
-  clearBtn.textContent = 'Limpar';
-  clearBtn.className = 'btn-clear';
-  clearBtn.style.padding = '6px 10px';
-  clearBtn.style.borderRadius = '8px';
-  clearBtn.style.cursor = 'pointer';
-  clearBtn.addEventListener('click', () => {
-    selected = [];
-    // remove highlights
-    document.querySelectorAll('.selected-card').forEach(el => el.classList.remove('selected-card'));
-    updateArenaUI();
-  });
-
-  // área de logs
+  // área de logs (mensagens)
   const logs = document.createElement('div');
   logs.id = 'arenaLogs';
   logs.style.width = '100%';
@@ -264,11 +232,9 @@ function ensureArenaUI() {
   logs.style.background = 'rgba(0,0,0,0.25)';
   logs.style.fontSize = '13px';
 
-  arenaRoot.appendChild(slotA);
-  arenaRoot.appendChild(vs);
-  arenaRoot.appendChild(slotB);
-  arenaRoot.appendChild(fightBtn);
-  arenaRoot.appendChild(clearBtn);
+  arenaRoot.appendChild(title);
+  arenaRoot.appendChild(slotSelected);
+  arenaRoot.appendChild(trainBtn);
   if (header) header.after(arenaRoot);
   arenaRoot.after(logs);
 
@@ -276,16 +242,26 @@ function ensureArenaUI() {
 }
 
 function updateArenaUI() {
-  const slotA = document.getElementById('slotA');
-  const slotB = document.getElementById('slotB');
+  const slotSel = document.getElementById('slotSelected');
   const logs = document.getElementById('arenaLogs');
 
-  if (!slotA || !slotB || !logs) return;
+  if (!slotSel || !logs) return;
 
-  slotA.innerHTML = selected[0] ? renderSlot(selected[0]) : '<em>Slot A (clique em um card)</em>';
-  slotB.innerHTML = selected[1] ? renderSlot(selected[1]) : '<em>Slot B (clique em um card)</em>';
+  slotSel.innerHTML = selected[0] ? renderSlot(selected[0]) : '<em>Clique em um card para selecionar</em>';
 
-  logs.innerHTML = selected.length === 2 ? `<strong>Pronto para lutar</strong>` : `<em>Selecione dois Digimon</em>`;
+  logs.innerHTML = selected.length === 1 ? `<strong>Pronto para treinar (se In Training)</strong>` : `<em>Selecione um Digimon</em>`;
+
+  // controlar botao Treinar
+  const trainBtn = document.getElementById('trainBtn');
+  if (trainBtn) {
+    if (selected.length === 1 && selected[0].level && /in[- ]?training/i.test(selected[0].level)) {
+      trainBtn.disabled = false;
+      trainBtn.style.opacity = '1';
+    } else {
+      trainBtn.disabled = true;
+      trainBtn.style.opacity = '0.6';
+    }
+  }
 }
 
 
@@ -301,49 +277,10 @@ function renderSlot(s) {
 }
 
 
-function showBattleResult(result) {
-  const logs = document.getElementById('arenaLogs');
-  if (!logs) {
-    alert(result.logs.join('\n'));
-    return;
-  }
-  logs.innerHTML = `<div><strong>Resultado</strong></div>
-    <div style="margin-top:6px">${result.logs.map(l => `<div>${escapeHtml(l)}</div>`).join('')}</div>`;
-}
-
-
 function escapeHtml(str) {
   return str.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-
-function simulateBattle(d1, d2) {
-
-  function power(a, b) {
-    const randFactor = 0.85 + Math.random() * 0.3; // variação
-    const offense = a.atk * randFactor + (a.esp * 0.6);
-    const defense = b.def * (0.9 + Math.random() * 0.2);
-    return offense - defense;
-  }
-
-  const score1 = power(d1.stats, d2.stats);
-  const score2 = power(d2.stats, d1.stats);
-
-  const logs = [
-    `${d1.name} total ofensivo: ${score1.toFixed(1)}`,
-    `${d2.name} total ofensivo: ${score2.toFixed(1)}`
-  ];
-
-  let winner;
-  if (Math.abs(score1 - score2) < 1.0) {
-    winner = Math.random() > 0.5 ? d1.name : d2.name;
-    logs.push('Empate técnico — desempate aleatório.');
-  } else {
-    winner = score1 > score2 ? d1.name : d2.name;
-  }
-  logs.push(`Vencedor: ${winner}`);
-  return { winner, logs };
-}
 
 
 function applyFilters() {
