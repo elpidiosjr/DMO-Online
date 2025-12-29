@@ -102,7 +102,7 @@
                 return;
             }
 
-            // validação simples de email (HTML5 também faz validação, mas isso dá feedback imediato)
+            // validação simples de email
             if (!/\S+@\S+\.\S+/.test(email)) {
                 feedbackEl.textContent = 'Informe um email válido.';
                 return;

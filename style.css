@@ -43,6 +43,19 @@ body{
 /* fallback: show the original PNG when mask isn't supported */
 .btn-account .account-img{ display:none; width:22px; height:22px; object-fit:contain; border-radius:6px; background:#fff; padding:3px }
 
+.btn-account:hover{
+  transform: scale(1.06);
+  box-shadow: 0 8px 20px rgba(0,0,0,.35);
+}
+
+.account-icon{
+  transition: transform .25s ease;
+}
+
+.btn-account:hover .account-icon{
+  transform: scale(1.12);
+}
+
 @supports not (-webkit-mask-image: url('./image/myacc.png')) {
   .btn-account .account-img{ display:inline-block }
   .btn-account .account-icon{ display:none }
