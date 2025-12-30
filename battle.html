@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Batalha Digimon</title>
+
+<style>
+body{
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:#071022;
+  color:#fff;
+  text-align:center;
+  padding:20px;
+}
+
+.box{
+  max-width:600px;
+  margin:18px auto;
+  background:rgba(255,255,255,.05);
+  padding:16px;
+  border-radius:12px;
+}
+
+/* ====== ANIMAÇÕES RPG ====== */
+
+@keyframes fadeIn {
+  from {opacity:0; transform:translateY(10px);}
+  to {opacity:1; transform:translateY(0);}
+}
+
+@keyframes shake {
+  0%{transform:translateX(0);}
+  25%{transform:translateX(-6px);}
+  50%{transform:translateX(6px);}
+  75%{transform:translateX(-6px);}
+  100%{transform:translateX(0);}
+}
+
+@keyframes glow {
+  from {box-shadow:0 0 0px rgba(255,255,0,.2);}
+  to {box-shadow:0 0 25px rgba(255,255,0,.6);}
+}
+
+.digimon{
+  animation: fadeIn .8s ease;
+}
+
+.hit{
+  animation: shake .5s ease;
+}
+
+.winner{
+  animation: glow 1.2s ease-in-out infinite alternate;
+}
+
+/* imagens */
+
+img{
+  width:110px;
+  height:110px;
+  object-fit:contain;
+  background:#fff;
+  border-radius:10px;
+  padding:8px;
+  margin-bottom:6px;
+}
+
+.name{font-weight:700;margin-top:4px}
+.muted{color:#bbb}
+
+#log{
+  margin-top:20px;
+  font-size:1.2rem;
+}
+</style>
+</head>
+
+<body>
+
+<a href="account.html" style="color:#fff;text-decoration:none">← Voltar</a>
+
+<h1>Batalha Digimon</h1>
+
+<div id="content">Carregando batalha...</div>
+
+<script>
+const API_URL = 'https://digimon-api.vercel.app/api/digimon';
+
+function getStats(){
+  try{return JSON.parse(localStorage.getItem('digimon_stats_v1'))||{}}
+  catch{return{}}
+}
+
+function saveStats(obj){
+  localStorage.setItem('digimon_stats_v1', JSON.stringify(obj));
+}
+
+async function start(){
+
+  const el = document.getElementById("content");
+
+  const q = new URLSearchParams(location.search);
+  const name = q.get("name");
+
+  const map = getStats();
+  const mine = map[name];
+
+  const res = await fetch(API_URL);
+  const api = await res.json();
+
+  const myDig = api.find(d=>d.name.toLowerCase()===name.toLowerCase());
+  const enemy = api[Math.floor(Math.random()*api.length)];
+
+  const myPower = mine.atk + mine.def + mine.esp;
+  const enemyPower = Math.floor(Math.random()*40)+10;
+
+  let winner = myPower >= enemyPower ? name : enemy.name;
+
+  // XP
+  let gained = winner===name ? 10 : 3;
+  mine.xp = (mine.xp||0) + gained;
+  saveStats(map);
+
+  el.innerHTML = `
+    <div class="box digimon ${winner===name?'winner':''}">
+      <h2>Seu Digimon</h2>
+      <img id="myImg" src="${myDig?myDig.img:''}">
+      <div class="name">${name}</div>
+      <div class="muted">
+        ⚔ ${mine.atk} &nbsp; 🛡 ${mine.def} &nbsp; ✨ ${mine.esp}<br>
+        Total: <b>${myPower}</b><br>
+        XP: <b>${mine.xp}</b>
+      </div>
+    </div>
+
+    <h2>⚡ VS ⚡</h2>
+
+    <div class="box digimon ${winner!==name?'winner':''}">
+      <h2>Oponente</h2>
+      <img id="enemyImg" src="${enemy.img}">
+      <div class="name">${enemy.name}</div>
+      <div class="muted">Poder: <b>${enemyPower}</b></div>
+    </div>
+
+    <div id="log"></div>
+
+    <h2>🏆 Vencedor: <span style="color:#3cf">${winner}</span></h2>
+    <div class="muted">Ganhou +${gained} XP</div>
+  `;
+
+  // Pequena animação estilo ataque
+  setTimeout(()=>document.getElementById("enemyImg").classList.add("hit"),500);
+  setTimeout(()=>document.getElementById("myImg").classList.add("hit"),900);
+}
+
+start();
+</script>
+
+</body>
+</html>
