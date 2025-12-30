@@ -84,6 +84,11 @@ img{
 
 <div id="content">Carregando batalha...</div>
 
+<!-- 🔊 ÁUDIO DE VITÓRIA -->
+<audio id="audioWin" src="sounds/win.mp3" preload="auto"></audio>
+<audio id="audioLose" src="sounds/lose.mp3" preload="auto"></audio>
+
+
 <script>
 const API_URL = 'https://digimon-api.vercel.app/api/digimon';
 
@@ -149,9 +154,21 @@ async function start(){
     <div class="muted">Ganhou +${gained} XP</div>
   `;
 
-  // Pequena animação estilo ataque
+  // animações
   setTimeout(()=>document.getElementById("enemyImg").classList.add("hit"),500);
   setTimeout(()=>document.getElementById("myImg").classList.add("hit"),900);
+
+  // 🔊 ÁUDIO
+  const winSound = document.getElementById("audioWin");
+  const loseSound = document.getElementById("audioLose");
+
+  if(winner === name){
+    winSound.currentTime = 0;
+    winSound.play();
+  } else {
+    loseSound.currentTime = 0;
+    loseSound.play();
+  }
 }
 
 start();
