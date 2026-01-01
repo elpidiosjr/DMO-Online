@@ -15,64 +15,58 @@ body{
 }
 
 .box{
-  max-width:600px;
+  max-width:650px;
   margin:18px auto;
   background:rgba(255,255,255,.05);
   padding:16px;
   border-radius:12px;
 }
 
-/* ====== ANIMAÇÕES RPG ====== */
-
-@keyframes fadeIn {
-  from {opacity:0; transform:translateY(10px);}
-  to {opacity:1; transform:translateY(0);}
-}
-
-@keyframes shake {
-  0%{transform:translateX(0);}
-  25%{transform:translateX(-6px);}
-  50%{transform:translateX(6px);}
-  75%{transform:translateX(-6px);}
-  100%{transform:translateX(0);}
-}
-
-@keyframes glow {
-  from {box-shadow:0 0 0px rgba(255,255,0,.2);}
-  to {box-shadow:0 0 25px rgba(255,255,0,.6);}
-}
-
-.digimon{
-  animation: fadeIn .8s ease;
-}
-
-.hit{
-  animation: shake .5s ease;
-}
-
-.winner{
-  animation: glow 1.2s ease-in-out infinite alternate;
-}
-
-/* imagens */
-
 img{
   width:110px;
   height:110px;
-  object-fit:contain;
   background:#fff;
   border-radius:10px;
   padding:8px;
-  margin-bottom:6px;
 }
 
-.name{font-weight:700;margin-top:4px}
+.name{font-weight:700}
 .muted{color:#bbb}
 
-#log{
-  margin-top:20px;
-  font-size:1.2rem;
+.hpbar,.mpbar{
+  height:14px;
+  border-radius:10px;
+  overflow:hidden;
+  background:#222;
+  margin-top:6px;
 }
+
+.hpfill{
+  height:100%;
+  width:100%;
+  background:#22c55e;
+}
+
+.mpfill{
+  height:100%;
+  width:100%;
+  background:#3b82f6;
+}
+
+button{
+  padding:10px 16px;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+  font-weight:700;
+}
+
+button:disabled{
+  opacity:.5;
+}
+
+#actions{margin-top:18px}
+#log{margin-top:16px;font-size:1.1rem}
 </style>
 </head>
 
@@ -82,12 +76,10 @@ img{
 
 <h1>Batalha Digimon</h1>
 
-<div id="content">Carregando batalha...</div>
+<div id="content">Carregando...</div>
 
-<!-- 🔊 ÁUDIO DE VITÓRIA -->
 <audio id="audioWin" src="sounds/win.mp3" preload="auto"></audio>
 <audio id="audioLose" src="sounds/lose.mp3" preload="auto"></audio>
-
 
 <script>
 const API_URL = 'https://digimon-api.vercel.app/api/digimon';
@@ -96,78 +88,173 @@ function getStats(){
   try{return JSON.parse(localStorage.getItem('digimon_stats_v1'))||{}}
   catch{return{}}
 }
-
 function saveStats(obj){
   localStorage.setItem('digimon_stats_v1', JSON.stringify(obj));
 }
 
-async function start(){
+let mine, enemy;
+let myHP=100, enemyHP=100;
+let myMP=100; // 🔥 MANA
+let turn="player";
 
-  const el = document.getElementById("content");
+async function start(){
 
   const q = new URLSearchParams(location.search);
   const name = q.get("name");
 
   const map = getStats();
-  const mine = map[name];
+  mine = map[name];
 
   const res = await fetch(API_URL);
   const api = await res.json();
 
   const myDig = api.find(d=>d.name.toLowerCase()===name.toLowerCase());
-  const enemy = api[Math.floor(Math.random()*api.length)];
+  enemy = api[Math.floor(Math.random()*api.length)];
 
-  const myPower = mine.atk + mine.def + mine.esp;
-  const enemyPower = Math.floor(Math.random()*40)+10;
-
-  let winner = myPower >= enemyPower ? name : enemy.name;
-
-  // XP
-  let gained = winner===name ? 10 : 3;
-  mine.xp = (mine.xp||0) + gained;
-  saveStats(map);
-
-  el.innerHTML = `
-    <div class="box digimon ${winner===name?'winner':''}">
+  document.getElementById("content").innerHTML = `
+  
+    <div class="box">
       <h2>Seu Digimon</h2>
-      <img id="myImg" src="${myDig?myDig.img:''}">
+      <img src="${myDig.img}">
       <div class="name">${name}</div>
-      <div class="muted">
-        ⚔ ${mine.atk} &nbsp; 🛡 ${mine.def} &nbsp; ✨ ${mine.esp}<br>
-        Total: <b>${myPower}</b><br>
-        XP: <b>${mine.xp}</b>
-      </div>
+      <div class="muted">ATK ${mine.atk} • DEF ${mine.def} • ESP ${mine.esp}</div>
+
+      <div class="hpbar"><div id="myhp" class="hpfill"></div></div>
+      <small>HP</small>
+
+      <div class="mpbar"><div id="mymp" class="mpfill"></div></div>
+      <small>MP</small>
+
     </div>
 
     <h2>⚡ VS ⚡</h2>
 
-    <div class="box digimon ${winner!==name?'winner':''}">
+    <div class="box">
       <h2>Oponente</h2>
-      <img id="enemyImg" src="${enemy.img}">
+      <img src="${enemy.img}">
       <div class="name">${enemy.name}</div>
-      <div class="muted">Poder: <b>${enemyPower}</b></div>
+
+      <div class="hpbar"><div id="enemyhp" class="hpfill"></div></div>
+      <small>HP</small>
     </div>
 
-    <div id="log"></div>
+    <div id="actions">
+      <button id="atkBtn" style="background:#3b82f6">⚔️ Atacar</button>
+      <button id="espBtn" style="background:#a855f7">✨ Especial (50MP)</button>
+    </div>
 
-    <h2>🏆 Vencedor: <span style="color:#3cf">${winner}</span></h2>
-    <div class="muted">Ganhou +${gained} XP</div>
+    <div id="log">Seu turno!</div>
   `;
 
-  // animações
-  setTimeout(()=>document.getElementById("enemyImg").classList.add("hit"),500);
-  setTimeout(()=>document.getElementById("myImg").classList.add("hit"),900);
+  document.getElementById("atkBtn").onclick = attack;
+  document.getElementById("espBtn").onclick = special;
 
-  // 🔊 ÁUDIO
-  const winSound = document.getElementById("audioWin");
-  const loseSound = document.getElementById("audioLose");
+  updateBars();
+  updateMana();
+}
 
-  if(winner === name){
-    winSound.currentTime = 0;
-    winSound.play();
+function updateBars(){
+  document.getElementById("myhp").style.width = myHP+"%";
+  document.getElementById("enemyhp").style.width = enemyHP+"%";
+}
+
+function updateMana(){
+  document.getElementById("mymp").style.width = myMP+"%";
+
+  const espBtn = document.getElementById("espBtn");
+
+  if(myMP < 50){
+    espBtn.disabled = true;
   } else {
-    loseSound.currentTime = 0;
+    espBtn.disabled = false;
+  }
+}
+
+function write(msg){
+  document.getElementById("log").innerText = msg;
+}
+
+function disable(){
+  document.getElementById("atkBtn").disabled = true;
+  document.getElementById("espBtn").disabled = true;
+}
+function enable(){
+  document.getElementById("atkBtn").disabled = false;
+  updateMana();
+}
+
+function attack(){
+  if(turn !== "player") return;
+
+  let dmg = Math.floor(Math.random()*15)+5;
+  enemyHP -= dmg;
+  if(enemyHP<0) enemyHP=0;
+
+  updateBars();
+  write(`Você causou ${dmg} de dano!`);
+  turn="enemy";
+
+  checkEnd();
+  if(enemyHP>0) setTimeout(enemyTurn,800);
+}
+
+function special(){
+  if(turn !== "player") return;
+  if(myMP < 50) return;
+
+  myMP -= 50;
+  updateMana();
+
+  let dmg = Math.floor(Math.random()*30)+10;
+  enemyHP -= dmg;
+  if(enemyHP<0) enemyHP=0;
+
+  updateBars();
+  write(`✨ Especial! Dano ${dmg}!`);
+  turn="enemy";
+
+  checkEnd();
+  if(enemyHP>0) setTimeout(enemyTurn,800);
+}
+
+function enemyTurn(){
+
+  let dmg = Math.floor(Math.random()*18)+6;
+  myHP -= dmg;
+  if(myHP<0) myHP=0;
+
+  updateBars();
+  write(`😈 ${enemy.name} atacou: ${dmg} de dano!`);
+  turn="player";
+
+  checkEnd();
+
+  if(myHP>0) enable();
+}
+
+function checkEnd(){
+
+  const winSound=document.getElementById("audioWin");
+  const loseSound=document.getElementById("audioLose");
+
+  if(enemyHP<=0){
+
+    write("🏆 Vitória!");
+
+    let stats=getStats();
+    stats[Object.keys(stats)[0]].xp = (stats[Object.keys(stats)[0]].xp||0)+10;
+    saveStats(stats);
+
+    winSound.play();
+    disable();
+  }
+
+  if(myHP<=0){
+
+    write("💀 Derrota...");
+
     loseSound.play();
+    disable();
   }
 }
 
