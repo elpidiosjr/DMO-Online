@@ -33,6 +33,8 @@ img{
 .name{font-weight:700}
 .muted{color:#bbb}
 
+/* ------- Barras ------- */
+
 .hpbar,.mpbar{
   height:14px;
   border-radius:10px;
@@ -41,17 +43,15 @@ img{
   margin-top:6px;
 }
 
-.hpfill{
+/* animação aqui 🔥 */
+.hpfill,.mpfill{
   height:100%;
   width:100%;
-  background:#22c55e;
+  transition:width .4s ease-in-out;
 }
 
-.mpfill{
-  height:100%;
-  width:100%;
-  background:#3b82f6;
-}
+.hpfill{ background:#22c55e; }
+.mpfill{ background:#3b82f6; }
 
 button{
   padding:10px 16px;
@@ -94,7 +94,8 @@ function saveStats(obj){
 
 let mine, enemy;
 let myHP=100, enemyHP=100;
-let myMP=100; // 🔥 MANA
+let myMP=100;
+let enemyMP=100;
 let turn="player";
 
 async function start(){
@@ -136,6 +137,10 @@ async function start(){
 
       <div class="hpbar"><div id="enemyhp" class="hpfill"></div></div>
       <small>HP</small>
+
+      <div class="mpbar"><div id="enemymp" class="mpfill"></div></div>
+      <small>MP</small>
+
     </div>
 
     <div id="actions">
@@ -160,14 +165,10 @@ function updateBars(){
 
 function updateMana(){
   document.getElementById("mymp").style.width = myMP+"%";
+  document.getElementById("enemymp").style.width = enemyMP+"%";
 
   const espBtn = document.getElementById("espBtn");
-
-  if(myMP < 50){
-    espBtn.disabled = true;
-  } else {
-    espBtn.disabled = false;
-  }
+  espBtn.disabled = myMP < 50;
 }
 
 function write(msg){
@@ -178,10 +179,13 @@ function disable(){
   document.getElementById("atkBtn").disabled = true;
   document.getElementById("espBtn").disabled = true;
 }
+
 function enable(){
   document.getElementById("atkBtn").disabled = false;
   updateMana();
 }
+
+/*  ------------PLAYER TURN------------- */
 
 function attack(){
   if(turn !== "player") return;
@@ -195,7 +199,7 @@ function attack(){
   turn="enemy";
 
   checkEnd();
-  if(enemyHP>0) setTimeout(enemyTurn,800);
+  if(enemyHP>0) setTimeout(enemyTurn,900);
 }
 
 function special(){
@@ -214,23 +218,41 @@ function special(){
   turn="enemy";
 
   checkEnd();
-  if(enemyHP>0) setTimeout(enemyTurn,800);
+  if(enemyHP>0) setTimeout(enemyTurn,900);
 }
+
+/* ------------ ENEMY AI ------------- */
 
 function enemyTurn(){
 
-  let dmg = Math.floor(Math.random()*18)+6;
-  myHP -= dmg;
+  let usedSpecial = false;
+
+  // 40% chance of special if MP allows
+  if(enemyMP >= 50 && Math.random() < 0.4){
+    enemyMP -= 50;
+    let dmg = Math.floor(Math.random()*28)+10;
+    myHP -= dmg;
+    usedSpecial = true;
+    write(`😈 ${enemy.name} usou ✨ especial e causou ${dmg}!`);
+  } else {
+    let dmg = Math.floor(Math.random()*18)+6;
+    myHP -= dmg;
+    write(`😈 ${enemy.name} atacou causando ${dmg}!`);
+  }
+
   if(myHP<0) myHP=0;
 
   updateBars();
-  write(`😈 ${enemy.name} atacou: ${dmg} de dano!`);
+  updateMana();
+
   turn="player";
 
   checkEnd();
 
   if(myHP>0) enable();
 }
+
+/* ----------- END CHECK ------------- */
 
 function checkEnd(){
 
