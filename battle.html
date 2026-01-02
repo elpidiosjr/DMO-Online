@@ -33,8 +33,6 @@ img{
 .name{font-weight:700}
 .muted{color:#bbb}
 
-/* ------- Barras ------- */
-
 .hpbar,.mpbar{
   height:14px;
   border-radius:10px;
@@ -43,7 +41,6 @@ img{
   margin-top:6px;
 }
 
-/* animação aqui 🔥 */
 .hpfill,.mpfill{
   height:100%;
   width:100%;
@@ -66,7 +63,25 @@ button:disabled{
 }
 
 #actions{margin-top:18px}
-#log{margin-top:16px;font-size:1.1rem}
+
+/* PAINEL DE LOG */
+#logPanel{
+  max-width:650px;
+  margin:16px auto;
+  text-align:left;
+  background:rgba(0,0,0,.25);
+  padding:12px;
+  border-radius:10px;
+  font-size:.95rem;
+  height:170px;
+  overflow-y:auto;
+}
+
+.logPlayer{color:#38bdf8;}
+.logEnemy{color:#f87171;}
+.logSys{color:#c084fc;}
+.logCrit{color:#facc15;font-weight:700;}
+.logMiss{color:#9ca3af;font-style:italic;}
 </style>
 </head>
 
@@ -77,6 +92,8 @@ button:disabled{
 <h1>Batalha Digimon</h1>
 
 <div id="content">Carregando...</div>
+
+<div id="logPanel">⏳ Iniciando batalha...</div>
 
 <audio id="audioWin" src="sounds/win.mp3" preload="auto"></audio>
 <audio id="audioLose" src="sounds/lose.mp3" preload="auto"></audio>
@@ -98,6 +115,17 @@ let myMP=100;
 let enemyMP=100;
 let turn="player";
 
+const MISS_CHANCE = 0.10;
+const CRIT_CHANCE = 0.15;
+
+/* ===== LOG ===== */
+
+function addLog(text,css="logSys"){
+  const box = document.getElementById("logPanel");
+  box.innerHTML += `<div class="${css}">• ${text}</div>`;
+  box.scrollTop = box.scrollHeight;
+}
+
 async function start(){
 
   const q = new URLSearchParams(location.search);
@@ -111,6 +139,9 @@ async function start(){
 
   const myDig = api.find(d=>d.name.toLowerCase()===name.toLowerCase());
   enemy = api[Math.floor(Math.random()*api.length)];
+
+  addLog(`🐾 ${name} entrou na batalha!`,"logPlayer");
+  addLog(`😈 ${enemy.name} apareceu!`,"logEnemy");
 
   document.getElementById("content").innerHTML = `
   
@@ -147,8 +178,6 @@ async function start(){
       <button id="atkBtn" style="background:#3b82f6">⚔️ Atacar</button>
       <button id="espBtn" style="background:#a855f7">✨ Especial (50MP)</button>
     </div>
-
-    <div id="log">Seu turno!</div>
   `;
 
   document.getElementById("atkBtn").onclick = attack;
@@ -156,6 +185,8 @@ async function start(){
 
   updateBars();
   updateMana();
+
+  addLog("Seu turno começou","logSys");
 }
 
 function updateBars(){
@@ -167,12 +198,7 @@ function updateMana(){
   document.getElementById("mymp").style.width = myMP+"%";
   document.getElementById("enemymp").style.width = enemyMP+"%";
 
-  const espBtn = document.getElementById("espBtn");
-  espBtn.disabled = myMP < 50;
-}
-
-function write(msg){
-  document.getElementById("log").innerText = msg;
+  document.getElementById("espBtn").disabled = myMP < 50;
 }
 
 function disable(){
@@ -185,22 +211,43 @@ function enable(){
   updateMana();
 }
 
-/*  ------------PLAYER TURN------------- */
+function rollDamage(min,max){
+  return Math.floor(Math.random()*max)+min;
+}
+function rollMiss(){return Math.random() < MISS_CHANCE;}
+function rollCrit(){return Math.random() < CRIT_CHANCE;}
+
+/* ===== PLAYER ATTACK ===== */
 
 function attack(){
   if(turn !== "player") return;
 
-  let dmg = Math.floor(Math.random()*15)+5;
-  enemyHP -= dmg;
+  if(rollMiss()){
+    addLog("Você errou o ataque!","logMiss");
+  } else {
+
+    let dmg = rollDamage(5,15);
+
+    if(rollCrit()){
+      dmg*=2;
+      addLog(`🔥 CRÍTICO! Você causou ${dmg} de dano!`,"logCrit");
+    } else {
+      addLog(`⚔️ Você causou ${dmg} de dano`,"logPlayer");
+    }
+
+    enemyHP -= dmg;
+  }
+
   if(enemyHP<0) enemyHP=0;
 
   updateBars();
-  write(`Você causou ${dmg} de dano!`);
   turn="enemy";
 
   checkEnd();
   if(enemyHP>0) setTimeout(enemyTurn,900);
 }
+
+/* ===== SPECIAL ===== */
 
 function special(){
   if(turn !== "player") return;
@@ -209,35 +256,75 @@ function special(){
   myMP -= 50;
   updateMana();
 
-  let dmg = Math.floor(Math.random()*30)+10;
-  enemyHP -= dmg;
+  if(rollMiss()){
+    addLog("✨ Seu especial errou!","logMiss");
+  } else {
+
+    let dmg = rollDamage(10,30);
+
+    if(rollCrit()){
+      dmg*=2;
+      addLog(`💥 CRÍTICO ESPECIAL! ${dmg} de dano!`,"logCrit");
+    } else {
+      addLog(`✨ Especial causou ${dmg} de dano!`,"logPlayer");
+    }
+
+    enemyHP -= dmg;
+  }
+
   if(enemyHP<0) enemyHP=0;
 
   updateBars();
-  write(`✨ Especial! Dano ${dmg}!`);
   turn="enemy";
 
   checkEnd();
   if(enemyHP>0) setTimeout(enemyTurn,900);
 }
 
-/* ------------ ENEMY AI ------------- */
+/* ===== ENEMY AI ===== */
 
 function enemyTurn(){
 
-  let usedSpecial = false;
+  addLog(`😈 Turno do ${enemy.name}`,"logEnemy");
 
-  // 40% chance of special if MP allows
-  if(enemyMP >= 50 && Math.random() < 0.4){
+  const useSpecial = enemyMP>=50 && Math.random()<0.4;
+
+  if(useSpecial){
     enemyMP -= 50;
-    let dmg = Math.floor(Math.random()*28)+10;
-    myHP -= dmg;
-    usedSpecial = true;
-    write(`😈 ${enemy.name} usou ✨ especial e causou ${dmg}!`);
+
+    if(rollMiss()){
+      addLog(`${enemy.name} ERROU o especial!`,"logMiss");
+    } else {
+
+      let dmg = rollDamage(10,28);
+
+      if(rollCrit()){
+        dmg*=2;
+        addLog(`🔥 CRÍTICO ESPECIAL de ${enemy.name}! ${dmg} dano!`,"logCrit");
+      } else {
+        addLog(`${enemy.name} usou especial causando ${dmg} dano`,"logEnemy");
+      }
+
+      myHP -= dmg;
+    }
+
   } else {
-    let dmg = Math.floor(Math.random()*18)+6;
-    myHP -= dmg;
-    write(`😈 ${enemy.name} atacou causando ${dmg}!`);
+
+    if(rollMiss()){
+      addLog(`${enemy.name} errou o ataque!`,"logMiss");
+    } else {
+
+      let dmg = rollDamage(6,18);
+
+      if(rollCrit()){
+        dmg*=2;
+        addLog(`💥 CRÍTICO de ${enemy.name}! ${dmg} dano!`,"logCrit");
+      } else {
+        addLog(`${enemy.name} causou ${dmg} de dano`,"logEnemy");
+      }
+
+      myHP -= dmg;
+    }
   }
 
   if(myHP<0) myHP=0;
@@ -249,10 +336,13 @@ function enemyTurn(){
 
   checkEnd();
 
-  if(myHP>0) enable();
+  if(myHP>0){
+    addLog("Seu turno começou","logSys");
+    enable();
+  }
 }
 
-/* ----------- END CHECK ------------- */
+/* ===== END ===== */
 
 function checkEnd(){
 
@@ -261,20 +351,14 @@ function checkEnd(){
 
   if(enemyHP<=0){
 
-    write("🏆 Vitória!");
-
-    let stats=getStats();
-    stats[Object.keys(stats)[0]].xp = (stats[Object.keys(stats)[0]].xp||0)+10;
-    saveStats(stats);
-
+    addLog("🏆 Vitória!","logPlayer");
     winSound.play();
     disable();
   }
 
   if(myHP<=0){
 
-    write("💀 Derrota...");
-
+    addLog("💀 Derrota...","logEnemy");
     loseSound.play();
     disable();
   }
