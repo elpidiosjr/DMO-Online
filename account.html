@@ -1,173 +1,223 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Minha Conta - Digimon</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minha Conta - Digimon</title>
 
-  <style>
-    body{
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial;
-      background:#091024;
-      color:#fff;
-      padding:18px
-    }
+<style>
+body{
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:#071022;
+  color:#fff;
+  padding:18px;
+}
 
-    .list{
-      max-width:840px;
-      margin:18px auto
-    }
+a{color:#fff;text-decoration:none}
 
-    .card{
-      background:rgba(255,255,255,0.03);
-      padding:12px;
-      border-radius:8px;
-      margin-bottom:8px;
-      display:flex;
-      gap:12px;
-      align-items:center
-    }
+.container{
+  max-width:900px;
+  margin:0 auto;
+}
 
-    img{
-      width:84px;
-      height:84px;
-      object-fit:contain;
-      background:#fff;
-      padding:6px;
-      border-radius:6px
-    }
+.card{
+  background:linear-gradient(180deg,#0b1633,#071022);
+  padding:14px;
+  border-radius:14px;
+  margin-bottom:14px;
+  display:flex;
+  gap:16px;
+  align-items:center;
+  box-shadow:0 10px 25px rgba(0,0,0,.35);
+}
 
-    button{
-      background:#06b6d4;
-      border:none;
-      padding:6px 8px;
-      color:#012;
-      border-radius:6px;
-      cursor:pointer;
-      font-weight:600;
-    }
+.card img{
+  width:90px;
+  height:90px;
+  object-fit:contain;
+  background:#fff;
+  padding:6px;
+  border-radius:10px;
+}
 
-    button:hover{
-      opacity:.9;
-      transform:scale(1.03);
-    }
+.info{
+  flex:1;
+}
 
-    .muted{color:#bbb}
-  </style>
+.name{
+  font-weight:800;
+  font-size:1.2rem;
+}
+
+.stat{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:6px;
+  font-size:.9rem;
+}
+
+.bar{
+  flex:1;
+  height:10px;
+  background:#1e293b;
+  border-radius:999px;
+  overflow:hidden;
+}
+
+.fill{
+  height:100%;
+  width:0;
+  transition:width .6s ease;
+}
+
+.atk{background:#ef4444}
+.def{background:#3b82f6}
+.esp{background:#facc15}
+
+.actions{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+button{
+  border:none;
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:700;
+}
+
+.train{background:#06b6d4}
+.battle{background:#16a34a}
+.remove{background:#ef4444}
+
+.pagination{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin-top:18px;
+}
+
+.pagination button{
+  background:#1e293b;
+  color:#fff;
+}
+</style>
 </head>
 
 <body>
-  <a href="index.html" style="color:#fff;text-decoration:none">← Voltar</a>
 
-  <h1>Minha Conta</h1>
+<div class="container">
+  <a href="index.html">← Voltar</a>
 
-  <div class="muted">Digimon treinados (localStorage)</div>
+  <h1>Meu Time</h1>
+  <p style="color:#94a3b8">Escolha um Digimon para batalhar contra um oponente aleatório</p>
 
-  <div id="list" class="list">Carregando...</div>
+  <div id="list">Carregando...</div>
 
+  <div class="pagination">
+    <button id="prev">◀ Anterior</button>
+    <button id="next">Próxima ▶</button>
+  </div>
+</div>
 
 <script>
-  const API_URL = 'https://digimon-api.vercel.app/api/digimon';
+const API_URL = 'https://digimon-api.vercel.app/api/digimon';
+const PER_PAGE = 3;
+let page = 0;
+let apiCache = [];
 
-  function getSavedMap(){
-    try{
-      const raw = localStorage.getItem('digimon_stats_v1');
-      return raw ? JSON.parse(raw) : {};
-    }catch(e){
-      return {};
-    }
+function getMap(){
+  try{
+    return JSON.parse(localStorage.getItem('digimon_stats_v1'))||{};
+  }catch{
+    return {};
+  }
+}
+
+async function loadAPI(){
+  if(apiCache.length) return apiCache;
+  const res = await fetch(API_URL);
+  apiCache = await res.json();
+  return apiCache;
+}
+
+async function render(){
+  const list = document.getElementById('list');
+  const map = getMap();
+  const names = Object.keys(map);
+
+  if(!names.length){
+    list.innerHTML='<p style="color:#94a3b8">Nenhum Digimon treinado.</p>';
+    return;
   }
 
-  function removeAll(){
-    if(confirm('Limpar todos os dados de treino?')){
-      localStorage.removeItem('digimon_stats_v1');
+  const api = await loadAPI();
+  list.innerHTML='';
+
+  const start = page * PER_PAGE;
+  const slice = names.slice(start,start+PER_PAGE);
+
+  slice.forEach(name=>{
+    const s = map[name];
+    const dig = api.find(d=>d.name.toLowerCase()===name.toLowerCase());
+
+    const card = document.createElement('div');
+    card.className='card';
+
+    card.innerHTML=`
+      <img src="${dig?.img||''}">
+      <div class="info">
+        <div class="name">${name}</div>
+
+        <div class="stat">
+          ⚔️ <div class="bar"><div class="fill atk" style="width:${s.atk}%"></div></div>
+        </div>
+
+        <div class="stat">
+          🛡️ <div class="bar"><div class="fill def" style="width:${s.def}%"></div></div>
+        </div>
+
+        <div class="stat">
+          ✨ <div class="bar"><div class="fill esp" style="width:${s.esp}%"></div></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a href="train.html?name=${encodeURIComponent(name)}">
+          <button class="train">Treinar</button>
+        </a>
+
+        <a href="battle.html?name=${encodeURIComponent(name)}">
+          <button class="battle">Batalhar</button>
+        </a>
+
+        <button class="remove" data-name="${name}">Remover</button>
+      </div>
+    `;
+
+    list.appendChild(card);
+  });
+
+  document.querySelectorAll('.remove').forEach(b=>{
+    b.onclick=()=>{
+      const map = getMap();
+      delete map[b.dataset.name];
+      localStorage.setItem('digimon_stats_v1',JSON.stringify(map));
       render();
-    }
-  }
+    };
+  });
 
-  async function render(){
+  document.getElementById('prev').disabled = page===0;
+  document.getElementById('next').disabled = start+PER_PAGE >= names.length;
+}
 
-    const list = document.getElementById('list');
-    list.innerHTML='Carregando...';
+document.getElementById('prev').onclick=()=>{page--;render();};
+document.getElementById('next').onclick=()=>{page++;render();};
 
-    const map = getSavedMap();
-    const names = Object.keys(map);
-
-    if(!names.length){
-      list.innerHTML = '<div class="muted">Nenhum Digimon treinado ainda.</div>';
-      return;
-    }
-
-    let api = [];
-    try{
-      const res = await fetch(API_URL);
-      api = await res.json();
-    }catch(e){
-      console.warn('API',e);
-    }
-
-    list.innerHTML = '';
-
-    names.forEach(name=>{
-
-      const s = map[name];
-      const dig = api.find(d => d.name.toLowerCase()===name.toLowerCase());
-
-      const card = document.createElement('div');
-      card.className='card';
-
-      card.innerHTML = `
-        <img src="${dig?dig.img:''}" alt="${name}">
-
-        <div style="flex:1">
-          <div style="font-weight:700">${name}</div>
-          <div class="muted">
-            ⚔️ ${s.atk} &nbsp; 
-            🛡️ ${s.def} &nbsp; 
-            ✨ ${s.esp}
-          </div>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:8px">
-
-          <a href="train.html?name=${encodeURIComponent(name)}" style="text-decoration:none">
-            <button>Treinar</button>
-          </a>
-
-          <a href="battle.html?name=${encodeURIComponent(name)}" style="text-decoration:none">
-            <button style="background:#16a34a">Batalhar</button>
-          </a>
-
-          <button data-remove="${name}" style="background:#ef4444">Remover</button>
-        </div>
-      `;
-
-      list.appendChild(card);
-    });
-
-    // botão limpar todos
-    const clearAll = document.createElement('div');
-    clearAll.style.marginTop='12px';
-    clearAll.innerHTML = `<button id="clear-all" style="background:#ef4444">Limpar todos</button>`;
-    list.appendChild(clearAll);
-
-    document.getElementById('clear-all')
-      .addEventListener('click', removeAll);
-
-    // remover individual
-    list.querySelectorAll('button[data-remove]')
-      .forEach(b=>b.addEventListener('click', ()=>{
-
-        const name = b.getAttribute('data-remove');
-        const map = getSavedMap();
-        delete map[name];
-
-        localStorage.setItem('digimon_stats_v1', JSON.stringify(map));
-        render();
-      }));
-  }
-
-  render();
+render();
 </script>
 
 </body>
