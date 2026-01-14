@@ -1,148 +1,326 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Digimon Cards</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        
-        /* Background com overlay para melhorar legibilidade */
-        body.bg-digimon {
-            background-image: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url('./image/digimonw4.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            background-color: #0f172a; 
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Digimon Cards</title>
 
-        /* Imagem alternativa para telas pequenas (melhora performance/responsividade) */
-        @media (max-width: 640px) {
-            body.bg-digimon {
-                background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('./image/digimonw4.jpg');
-                background-position: center;
-            }
-        }
-    </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body.bg-digimon {
+      background-image:
+        linear-gradient(rgba(0,0,0,0.60), rgba(0,0,0,0.60)),
+        url('./image/digimonw4.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-color: #0f172a;
+    }
+
+    @media (max-width: 640px) {
+      body.bg-digimon {
+        background-attachment: scroll;
+      }
+    }
+
+    /* Pequena melhora no autofill do Chrome */
+    input:-webkit-autofill {
+      -webkit-text-fill-color: #0f172a !important;
+      transition: background-color 9999s ease-in-out 0s;
+    }
+  </style>
 </head>
-<body class="bg-gray-900 text-white flex items-center justify-center h-screen bg-digimon">
 
-    <div class="bg-gray-800 p-10 rounded-2xl shadow-xl w-96 text-center">
-        <h1 class="text-3xl font-bold mb-6">Bem-vindo!</h1>
-        <p class="mb-4 text-gray-300">Acesse sua conta Digimon Online</p>
+<body class="bg-digimon min-h-screen text-white flex items-center justify-center px-4 py-10">
+  <main class="w-full max-w-md">
+    <section
+      class="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-2xl backdrop-blur-md"
+      aria-label="Área de login"
+    >
+      <!-- topo decorativo -->
+      <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-yellow-400 via-cyan-400 to-blue-500"></div>
 
-        <form id="loginForm" class="space-y-3" novalidate>
-            <label for="emailLogin" class="sr-only">Email</label>
-            <input id="emailLogin" name="email" type="email" autocomplete="email" placeholder="Email" required
-                class="w-full p-3 rounded-lg text-black">
-            
-            <label for="passwordLogin" class="sr-only">Senha</label>
-            <input id="passwordLogin" name="password" type="password" autocomplete="current-password" placeholder="Senha" required
-                class="w-full p-3 rounded-lg text-black">
+      <div class="p-7 sm:p-9">
+        <header class="text-center">
+          <h1 class="text-3xl font-extrabold tracking-tight">Bem-vindo!</h1>
+          <p class="mt-2 text-sm text-slate-300">Acesse sua conta Digimon Online</p>
+        </header>
 
-            <button type="submit" id="loginBtn"
-                class="w-full bg-yellow-500 hover:bg-yellow-600 py-3 rounded-xl text-lg font-bold shadow-md mb-4">
-                Entrar
-            </button>
+        <!-- feedback global -->
+        <div id="login-feedback"
+             role="alert"
+             aria-live="polite"
+             class="mt-4 hidden rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        </div>
+
+        <form id="loginForm" class="mt-6 space-y-4" novalidate>
+          <!-- Email -->
+          <div>
+            <label for="emailLogin" class="block text-sm font-medium text-slate-200">
+              Email
+            </label>
+            <div class="mt-2">
+              <input
+                id="emailLogin"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="seuemail@exemplo.com"
+                required
+                inputmode="email"
+                class="w-full rounded-xl bg-white px-4 py-3 text-slate-900 outline-none ring-2 ring-transparent transition focus:ring-cyan-400"
+              />
+            </div>
+            <p id="emailHint" class="mt-1 text-xs text-slate-400">Use um email válido para entrar.</p>
+          </div>
+
+          <!-- Senha -->
+          <div>
+            <label for="passwordLogin" class="block text-sm font-medium text-slate-200">
+              Senha
+            </label>
+
+            <div class="mt-2 relative">
+              <input
+                id="passwordLogin"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="••••••••"
+                required
+                minlength="4"
+                class="w-full rounded-xl bg-white px-4 py-3 pr-12 text-slate-900 outline-none ring-2 ring-transparent transition focus:ring-cyan-400"
+              />
+
+              <!-- botão mostrar/ocultar -->
+              <button
+                type="button"
+                id="togglePassword"
+                class="absolute inset-y-0 right-0 px-3 text-slate-600 hover:text-slate-900"
+                aria-label="Mostrar senha"
+                title="Mostrar/ocultar senha"
+              >
+                <!-- ícone simples -->
+                <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+
+            <div class="mt-3 flex items-center justify-between gap-3">
+              <label class="inline-flex items-center gap-2 text-sm text-slate-300 select-none">
+                <input id="rememberMe" type="checkbox" class="h-4 w-4 rounded border-white/30 bg-white/10">
+                Lembrar de mim
+              </label>
+
+              <!-- link “esquecida” (sem funcionalidade por enquanto) -->
+              <a href="#"
+                 id="forgotPassword"
+                 class="text-sm font-medium text-cyan-300 hover:text-cyan-200 hover:underline">
+                Esqueci a senha
+              </a>
+            </div>
+          </div>
+
+          <!-- Botão Entrar -->
+          <button
+            type="submit"
+            id="loginBtn"
+            class="mt-2 w-full rounded-xl bg-yellow-500 py-3 text-lg font-extrabold text-slate-900 shadow-lg shadow-yellow-500/20 transition hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <span id="loginBtnText">Entrar</span>
+            <span id="loginBtnLoading" class="hidden items-center justify-center gap-2">
+              <svg class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path>
+              </svg>
+              Entrando...
+            </span>
+          </button>
         </form>
 
-        <div class="my-4 text-gray-400">ou</div>
+        <div class="my-6 flex items-center gap-3">
+          <div class="h-px flex-1 bg-white/10"></div>
+          <div class="text-xs uppercase tracking-wider text-slate-400">ou</div>
+          <div class="h-px flex-1 bg-white/10"></div>
+        </div>
 
-        
-        <button id="goToSignup"
-            class="w-full bg-green-600 hover:bg-green-700 py-3 rounded-xl text-lg font-bold shadow-md mb-3">
+        <div class="space-y-3">
+          <button
+            id="goToSignup"
+            class="w-full rounded-xl bg-emerald-600 py-3 text-lg font-bold shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+          >
             Criar conta
-        </button>
+          </button>
 
-        
-        <button id="googleSignup"
-            class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-xl text-lg font-bold shadow-md">
+          <button
+            id="googleSignup"
+            class="w-full rounded-xl bg-blue-600 py-3 text-lg font-bold shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          >
             Criar conta com Gmail
-        </button>
-        <div id="login-feedback" role="alert" aria-live="polite" class="mt-3 text-sm text-red-500"></div>
-    </div>
+          </button>
+        </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+        <p class="mt-6 text-center text-xs text-slate-400">
+          Dica de teste: <span class="font-semibold text-slate-200">teste@teste.com</span> / <span class="font-semibold text-slate-200">1234</span>
+        </p>
+      </div>
+    </section>
+  </main>
 
-    <script>
-        
-        const firebaseConfig = {
-            apiKey: "SUA_API_KEY",
-            authDomain: "SEU_AUTH_DOMAIN",
-            projectId: "SEU_PROJECT_ID",
-            storageBucket: "SEU_BUCKET",
-            messagingSenderId: "SEU_SENDER_ID",
-            appId: "SEU_APP_ID"
-        };
-        
-        let auth = null;
-        let firebaseReady = false;
-        try {
-            firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth();
-            firebaseReady = true;
-            console.log('Firebase iniciado com sucesso.');
-        } catch (err) {
-            console.warn('Firebase não inicializado:', err);
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+  <script>
+    // ✅ DESTINO APÓS LOGIN (o que você pediu)
+    const REDIRECT_AFTER_LOGIN = "account.html";
+
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_AUTH_DOMAIN",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_BUCKET",
+      messagingSenderId: "SEU_SENDER_ID",
+      appId: "SEU_APP_ID"
+    };
+
+    let auth = null;
+    let firebaseReady = false;
+
+    try {
+      firebase.initializeApp(firebaseConfig);
+      auth = firebase.auth();
+      firebaseReady = true;
+      console.log("Firebase iniciado com sucesso.");
+    } catch (err) {
+      console.warn("Firebase não inicializado:", err);
+    }
+
+    const form = document.getElementById("loginForm");
+    const feedbackEl = document.getElementById("login-feedback");
+    const loginBtn = document.getElementById("loginBtn");
+    const loginBtnText = document.getElementById("loginBtnText");
+    const loginBtnLoading = document.getElementById("loginBtnLoading");
+
+    const emailEl = document.getElementById("emailLogin");
+    const passEl = document.getElementById("passwordLogin");
+
+    function setFeedback(message) {
+      if (!message) {
+        feedbackEl.classList.add("hidden");
+        feedbackEl.textContent = "";
+        return;
+      }
+      feedbackEl.textContent = message;
+      feedbackEl.classList.remove("hidden");
+    }
+
+    function setLoading(isLoading) {
+      loginBtn.disabled = !!isLoading;
+      if (isLoading) {
+        loginBtnText.classList.add("hidden");
+        loginBtnLoading.classList.remove("hidden");
+        loginBtnLoading.classList.add("flex");
+      } else {
+        loginBtnText.classList.remove("hidden");
+        loginBtnLoading.classList.add("hidden");
+        loginBtnLoading.classList.remove("flex");
+      }
+    }
+
+    // mostrar/ocultar senha
+    document.getElementById("togglePassword").addEventListener("click", () => {
+      const isPassword = passEl.type === "password";
+      passEl.type = isPassword ? "text" : "password";
+      document.getElementById("togglePassword").setAttribute(
+        "aria-label",
+        isPassword ? "Ocultar senha" : "Mostrar senha"
+      );
+    });
+
+    // submit login
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setFeedback("");
+
+      const email = emailEl.value.trim();
+      const senha = passEl.value;
+
+      if (!email || !senha) {
+        setFeedback("Preencha email e senha.");
+        return;
+      }
+
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        setFeedback("Informe um email válido.");
+        emailEl.focus();
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        // Em produção utilize (firebaseReady && auth)
+        if (false) {
+          await auth.signInWithEmailAndPassword(email, senha);
+          window.location.href = REDIRECT_AFTER_LOGIN; // ✅
+        } else {
+          // modo teste
+          await new Promise(r => setTimeout(r, 350)); // micro delay só pra UX
+          if (email === "teste@teste.com" && senha === "1234") {
+            window.location.href = REDIRECT_AFTER_LOGIN; // ✅
+          } else {
+            setFeedback("Login inválido (teste: teste@teste.com / 1234)");
+          }
         }
+      } catch (err) {
+        console.error("Erro no login:", err);
+        setFeedback("Erro: " + (err?.message || "Não foi possível entrar."));
+      } finally {
+        setLoading(false);
+      }
+    });
 
-        const feedbackEl = document.getElementById('login-feedback');
+    // botões extras
+    document.getElementById("goToSignup").addEventListener("click", () => {
+      window.location.href = "signup.html";
+    });
 
-        
-        document.getElementById("loginForm").addEventListener("submit", (e) => {
-            e.preventDefault();
-            console.log('loginForm submit');
-            const email = document.getElementById("emailLogin").value.trim();
-            const senha = document.getElementById("passwordLogin").value;
+    document.getElementById("googleSignup").addEventListener("click", async () => {
+      setFeedback("");
+      if (!firebaseReady || !auth) {
+        setFeedback("Google Sign-In não disponível: Firebase não configurado.");
+        return;
+      }
 
-            if (!email || !senha) {
-                feedbackEl.textContent = 'Preencha email e senha.';
-                return;
-            }
+      setLoading(true);
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        await auth.signInWithPopup(provider);
+        window.location.href = REDIRECT_AFTER_LOGIN; // ✅
+      } catch (err) {
+        console.error("Erro Google Sign-In:", err);
+        setFeedback("Erro no Google: " + (err?.message || "Falha no login Google."));
+      } finally {
+        setLoading(false);
+      }
+    });
 
-            // validação simples de email
-            if (!/\S+@\S+\.\S+/.test(email)) {
-                feedbackEl.textContent = 'Informe um email válido.';
-                return;
-            }
+    // “Esqueci a senha” (placeholder)
+    document.getElementById("forgotPassword").addEventListener("click", (e) => {
+      e.preventDefault();
+      setFeedback("Em breve: recuperação de senha. (Se quiser, eu implemento com Firebase)");
+    });
 
-            // Em produção utilize (firebaseReady && auth)
-            if (false) {
-                auth.signInWithEmailAndPassword(email, senha)
-                    .then(() => window.location.href = "index.html")
-                    .catch(err => {
-                        console.error('Erro no signIn:', err);
-                        feedbackEl.textContent = 'Erro: ' + err.message;
-                    });
-            } else {
-                if (email === 'teste@teste.com' && senha === '1234') {
-                    window.location.href = 'index.html';
-                } else {
-                    feedbackEl.textContent = 'Login inválido (teste: teste@teste.com / 1234)';
-                }
-            }
-        });
-        document.getElementById("goToSignup").addEventListener("click", () => {
-            window.location.href = "signup.html";
-        });
-
-        
-        document.getElementById("googleSignup").addEventListener("click", () => {
-            if (!firebaseReady || !auth) {
-                feedbackEl.textContent = 'Google Sign-In não disponível: Firebase não configurado.';
-                return;
-            }
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then(() => window.location.href = "index.html")
-                .catch(err => {
-                    console.error('Erro Google Sign-In:', err);
-                    feedbackEl.textContent = 'Erro no Google: ' + err.message;
-                });
-        });
-    </script>
-
+    // UX: limpar feedback ao digitar
+    emailEl.addEventListener("input", () => setFeedback(""));
+    passEl.addEventListener("input", () => setFeedback(""));
+  </script>
 </body>
 </html>
