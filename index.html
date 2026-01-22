@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digimon Online</title>
-    <link rel="stylesheet" href="style.css ">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header class="header">
       <div class="header-left">
         <div class="controls">
-          <input id="search" type="search" placeholder="Buscar por nome...">
+          <input id="search" type="search" placeholder="Buscar por nome..." aria-label="Buscar Digimon por nome">
           <select id="levelFilter">
             <option value="">Todos os Níveis</option>
             <option value="In Training">In Training</option>
@@ -27,7 +27,7 @@
     </header>
 
 <main>
-    <div id="status" class="Carregando Digimon..."></div>
+    <div id="status" class="status">Carregando Digimon...</div>
     <div id="gallery" class="gallery" ></div>
 </main>
 
