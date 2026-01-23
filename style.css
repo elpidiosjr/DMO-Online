@@ -99,7 +99,7 @@ body{
 
 .controls input, .controls select{
   padding:8px 10px;
-  border-radius:px;
+  border-radius:6px;
   border:1px solid rgba(68, 17, 210, 0.06);
   color: #06b6d4;
   background-color: rgba(82, 142, 77, 0.13);
