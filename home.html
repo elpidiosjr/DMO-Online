@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digimon Cards - Hub</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body{
+      background: radial-gradient(circle at top, #1d2537, #050816);
+      color:#e5e7eb;
+      font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+      min-height:100vh;
+      margin:0;
+      padding:20px;
+    }
+    .hub-container{
+      max-width:960px;
+      margin:0 auto;
+    }
+    .hub-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      margin-bottom:24px;
+    }
+    .hub-title h1{
+      margin:0;
+      font-size:1.6rem;
+      color:#38bdf8;
+    }
+    .hub-title span{
+      font-size:.85rem;
+      color:#9ca3af;
+    }
+    .hub-player{
+      text-align:right;
+      font-size:.9rem;
+    }
+    .hub-player-coins{
+      font-size:1rem;
+      font-weight:600;
+    }
+    .hub-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:16px;
+    }
+    .hub-card{
+      background:linear-gradient(145deg,#020617,#0b1220);
+      border-radius:14px;
+      padding:16px;
+      box-shadow:0 12px 30px rgba(0,0,0,.45);
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      min-height:140px;
+      border:1px solid rgba(148,163,184,.2);
+    }
+    .hub-card h2{
+      margin:0 0 6px;
+      font-size:1.1rem;
+    }
+    .hub-card p{
+      margin:0 0 12px;
+      font-size:.85rem;
+      color:#9ca3af;
+    }
+    .hub-card button{
+      border:none;
+      border-radius:999px;
+      padding:8px 12px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:.9rem;
+      background:#2563eb;
+      color:#fff;
+    }
+    .hub-card button:hover{
+      filter:brightness(1.05);
+    }
+    @media (max-width:640px){
+      body{padding:12px;}
+      .hub-header{flex-direction:column; align-items:flex-start;}
+      .hub-player{text-align:left;}
+    }
+  </style>
+</head>
+<body>
+  <div class="hub-container">
+    <header class="hub-header">
+      <div class="hub-title">
+        <h1>Digimon Cards</h1>
+        <span>Escolha o que fazer, Tamer!</span>
+      </div>
+      <div class="hub-player">
+        <div id="playerEmail">Jogador</div>
+        <div class="hub-player-coins">
+          💰 <span id="coinsValue">0</span> coins
+        </div>
+      </div>
+    </header>
+
+    <main class="hub-grid">
+      <section class="hub-card">
+        <div>
+          <h2>Minha Conta</h2>
+          <p>Veja seus Digimons, organize seu time e prepare-se para a batalha.</p>
+        </div>
+        <button onclick="goTo('account.html')">Abrir conta</button>
+      </section>
+
+      <section class="hub-card">
+        <div>
+          <h2>Galeria de Digimons</h2>
+          <p>Explore todos os Digimons disponíveis e veja seus atributos.</p>
+        </div>
+        <button onclick="goTo('index.html')">Ver galeria</button>
+      </section>
+
+      <section class="hub-card">
+        <div>
+          <h2>Tiros / Invocação</h2>
+          <p>Gaste coins para sortear novos Digimons para sua coleção.</p>
+        </div>
+        <button onclick="goTo('gacha.html')">Ir para os tiros</button>
+      </section>
+
+      <section class="hub-card">
+        <div>
+          <h2>Loja de Itens</h2>
+          <p>Compre itens especiais para fortalecer seus Digimons.</p>
+        </div>
+        <button onclick="goTo('shop.html')">Abrir loja</button>
+      </section>
+    </main>
+  </div>
+
+  <script src="game-storage.js"></script>
+  <script>
+    function goTo(page){
+      window.location.href = page;
+    }
+
+    function initUserInfo(){
+      const userRaw = localStorage.getItem("dc_current_user");
+      const el = document.getElementById("playerEmail");
+      if (userRaw && el) {
+        try {
+          const user = JSON.parse(userRaw);
+          el.textContent = user.email || "Jogador";
+        } catch {
+          el.textContent = "Jogador";
+        }
+      }
+    }
+
+    document.getElementById('coinsValue').textContent = getCoins();
+    initUserInfo();
+  </script>
+</body>
+</html>

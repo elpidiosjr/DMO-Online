@@ -18,307 +18,105 @@
       background-attachment: fixed;
       background-color: #0f172a;
     }
-
-    @media (max-width: 640px) {
-      body.bg-digimon {
-        background-attachment: scroll;
-      }
-    }
-
-    /* Pequena melhora no autofill do Chrome */
-    input:-webkit-autofill {
-      -webkit-text-fill-color: #0f172a !important;
-      transition: background-color 9999s ease-in-out 0s;
-    }
   </style>
 </head>
-
-<body class="bg-digimon min-h-screen text-white flex items-center justify-center px-4 py-10">
-  <main class="w-full max-w-md">
-    <section
-      class="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-2xl backdrop-blur-md"
-      aria-label="Área de login"
-    >
-      <!-- topo decorativo -->
-      <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-yellow-400 via-cyan-400 to-blue-500"></div>
-
-      <div class="p-7 sm:p-9">
-        <header class="text-center">
-          <h1 class="text-3xl font-extrabold tracking-tight">Bem-vindo!</h1>
-          <p class="mt-2 text-sm text-slate-300">Acesse sua conta Digimon Online</p>
-        </header>
-
-        <!-- feedback global -->
-        <div id="login-feedback"
-             role="alert"
-             aria-live="polite"
-             class="mt-4 hidden rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-        </div>
-
-        <form id="loginForm" class="mt-6 space-y-4" novalidate>
-          <!-- Email -->
-          <div>
-            <label for="emailLogin" class="block text-sm font-medium text-slate-200">
-              Email
-            </label>
-            <div class="mt-2">
-              <input
-                id="emailLogin"
-                name="email"
-                type="email"
-                autocomplete="email"
-                placeholder="seuemail@exemplo.com"
-                required
-                inputmode="email"
-                class="w-full rounded-xl bg-white px-4 py-3 text-slate-900 outline-none ring-2 ring-transparent transition focus:ring-cyan-400"
-              />
-            </div>
-            <p id="emailHint" class="mt-1 text-xs text-slate-400">Use um email válido para entrar.</p>
-          </div>
-
-          <!-- Senha -->
-          <div>
-            <label for="passwordLogin" class="block text-sm font-medium text-slate-200">
-              Senha
-            </label>
-
-            <div class="mt-2 relative">
-              <input
-                id="passwordLogin"
-                name="password"
-                type="password"
-                autocomplete="current-password"
-                placeholder="••••••••"
-                required
-                minlength="4"
-                class="w-full rounded-xl bg-white px-4 py-3 pr-12 text-slate-900 outline-none ring-2 ring-transparent transition focus:ring-cyan-400"
-              />
-
-              <!-- botão mostrar/ocultar -->
-              <button
-                type="button"
-                id="togglePassword"
-                class="absolute inset-y-0 right-0 px-3 text-slate-600 hover:text-slate-900"
-                aria-label="Mostrar senha"
-                title="Mostrar/ocultar senha"
-              >
-                <!-- ícone simples -->
-                <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-              </button>
-            </div>
-
-            <div class="mt-3 flex items-center justify-between gap-3">
-              <label class="inline-flex items-center gap-2 text-sm text-slate-300 select-none">
-                <input id="rememberMe" type="checkbox" class="h-4 w-4 rounded border-white/30 bg-white/10">
-                Lembrar de mim
-              </label>
-
-              <!-- link “esquecida” (sem funcionalidade por enquanto) -->
-              <a href="#"
-                 id="forgotPassword"
-                 class="text-sm font-medium text-cyan-300 hover:text-cyan-200 hover:underline">
-                Esqueci a senha
-              </a>
-            </div>
-          </div>
-
-          <!-- Botão Entrar -->
-          <button
-            type="submit"
-            id="loginBtn"
-            class="mt-2 w-full rounded-xl bg-yellow-500 py-3 text-lg font-extrabold text-slate-900 shadow-lg shadow-yellow-500/20 transition hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <span id="loginBtnText">Entrar</span>
-            <span id="loginBtnLoading" class="hidden items-center justify-center gap-2">
-              <svg class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor"
-                      d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path>
-              </svg>
-              Entrando...
-            </span>
-          </button>
-        </form>
-
-        <div class="my-6 flex items-center gap-3">
-          <div class="h-px flex-1 bg-white/10"></div>
-          <div class="text-xs uppercase tracking-wider text-slate-400">ou</div>
-          <div class="h-px flex-1 bg-white/10"></div>
-        </div>
-
-        <div class="space-y-3">
-          <button
-            id="goToSignup"
-            class="w-full rounded-xl bg-emerald-600 py-3 text-lg font-bold shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-300"
-          >
-            Criar conta
-          </button>
-
-          <button
-            id="googleSignup"
-            class="w-full rounded-xl bg-blue-600 py-3 text-lg font-bold shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
-          >
-            Criar conta com Gmail
-          </button>
-        </div>
-
-        <p class="mt-6 text-center text-xs text-slate-400">
-          Dica de teste: <span class="font-semibold text-slate-200">teste@teste.com</span> / <span class="font-semibold text-slate-200">1234</span>
-        </p>
+<body class="bg-digimon min-h-screen flex items-center justify-center px-4">
+  <div class="max-w-md w-full bg-slate-900/80 border border-slate-700/60 rounded-2xl shadow-2xl shadow-black/40 p-6 backdrop-blur">
+    <div class="flex items-center gap-3 mb-6">
+      <img src="./image/myacc.png" alt="Digimon" class="w-10 h-10 rounded-lg object-contain bg-slate-800 p-1" />
+      <div>
+        <h1 class="text-xl font-bold text-cyan-300">Digimon Cards</h1>
+        <p class="text-xs text-slate-300">Faça login para entrar no mundo digital</p>
       </div>
-    </section>
-  </main>
+    </div>
 
-  <!-- Firebase (compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label for="email" class="block text-sm font-medium text-slate-200 mb-1">E-mail</label>
+        <input
+          id="email"
+          type="email"
+          required
+          class="w-full rounded-lg border border-slate-600 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          placeholder="voce@exemplo.com"
+        />
+      </div>
+
+      <div>
+        <label for="password" class="block text-sm font-medium text-slate-200 mb-1">Senha</label>
+        <input
+          id="password"
+          type="password"
+          required
+          minlength="4"
+          class="w-full rounded-lg border border-slate-600 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          placeholder="••••••••"
+        />
+      </div>
+
+      <div class="flex items-center justify-between text-xs text-slate-300">
+        <label class="flex items-center gap-2">
+          <input type="checkbox" id="remember" class="rounded border-slate-500 bg-slate-900 text-cyan-400 focus:ring-cyan-400" />
+          Lembrar de mim
+        </label>
+        <button type="button" id="forgotPassword" class="hover:text-cyan-300 underline">
+          Esqueci a senha
+        </button>
+      </div>
+
+      <button
+        type="submit"
+        class="w-full mt-1 inline-flex items-center justify-center rounded-lg bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-lg shadow-cyan-500/30 hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:ring-offset-2 focus:ring-offset-slate-900 transition"
+      >
+        Entrar
+      </button>
+
+      <p id="feedback" class="text-xs text-center text-rose-300 mt-1 h-4"></p>
+    </form>
+
+    <p class="mt-6 text-[11px] text-center text-slate-400">
+      Futuro: integrar com Firebase/Auth de verdade. Por enquanto, login é local.
+    </p>
+  </div>
 
   <script>
-    // ✅ DESTINO APÓS LOGIN (o que você pediu)
-    const REDIRECT_AFTER_LOGIN = "account.html";
-
-    const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
-      authDomain: "SEU_AUTH_DOMAIN",
-      projectId: "SEU_PROJECT_ID",
-      storageBucket: "SEU_BUCKET",
-      messagingSenderId: "SEU_SENDER_ID",
-      appId: "SEU_APP_ID"
-    };
-
-    let auth = null;
-    let firebaseReady = false;
-
-    try {
-      firebase.initializeApp(firebaseConfig);
-      auth = firebase.auth();
-      firebaseReady = true;
-      console.log("Firebase iniciado com sucesso.");
-    } catch (err) {
-      console.warn("Firebase não inicializado:", err);
-    }
+    const REDIRECT_AFTER_LOGIN = "home.html"; // <<< AGORA VAI PARA O HUB
 
     const form = document.getElementById("loginForm");
-    const feedbackEl = document.getElementById("login-feedback");
-    const loginBtn = document.getElementById("loginBtn");
-    const loginBtnText = document.getElementById("loginBtnText");
-    const loginBtnLoading = document.getElementById("loginBtnLoading");
+    const emailEl = document.getElementById("email");
+    const passEl = document.getElementById("password");
+    const feedbackEl = document.getElementById("feedback");
 
-    const emailEl = document.getElementById("emailLogin");
-    const passEl = document.getElementById("passwordLogin");
-
-    function setFeedback(message) {
-      if (!message) {
-        feedbackEl.classList.add("hidden");
-        feedbackEl.textContent = "";
-        return;
-      }
-      feedbackEl.textContent = message;
-      feedbackEl.classList.remove("hidden");
+    function setFeedback(msg) {
+      feedbackEl.textContent = msg || "";
     }
 
-    function setLoading(isLoading) {
-      loginBtn.disabled = !!isLoading;
-      if (isLoading) {
-        loginBtnText.classList.add("hidden");
-        loginBtnLoading.classList.remove("hidden");
-        loginBtnLoading.classList.add("flex");
-      } else {
-        loginBtnText.classList.remove("hidden");
-        loginBtnLoading.classList.add("hidden");
-        loginBtnLoading.classList.remove("flex");
-      }
-    }
-
-    // mostrar/ocultar senha
-    document.getElementById("togglePassword").addEventListener("click", () => {
-      const isPassword = passEl.type === "password";
-      passEl.type = isPassword ? "text" : "password";
-      document.getElementById("togglePassword").setAttribute(
-        "aria-label",
-        isPassword ? "Ocultar senha" : "Mostrar senha"
-      );
-    });
-
-    // submit login
-    form.addEventListener("submit", async (e) => {
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
-      setFeedback("");
-
       const email = emailEl.value.trim();
-      const senha = passEl.value;
+      const pass = passEl.value.trim();
 
-      if (!email || !senha) {
-        setFeedback("Preencha email e senha.");
+      if (!email || !pass) {
+        setFeedback("Preencha e-mail e senha.");
         return;
       }
 
-      if (!/^\S+@\S+\.\S+$/.test(email)) {
-        setFeedback("Informe um email válido.");
-        emailEl.focus();
-        return;
-      }
-
-      setLoading(true);
-
-      try {
-        // Em produção utilize (firebaseReady && auth)
-        if (false) {
-          await auth.signInWithEmailAndPassword(email, senha);
-          window.location.href = REDIRECT_AFTER_LOGIN; // ✅
-        } else {
-          // modo teste
-          await new Promise(r => setTimeout(r, 350)); // micro delay só pra UX
-          if (email === "teste@teste.com" && senha === "1234") {
-            window.location.href = REDIRECT_AFTER_LOGIN; // ✅
-          } else {
-            setFeedback("Login inválido (teste: teste@teste.com / 1234)");
-          }
-        }
-      } catch (err) {
-        console.error("Erro no login:", err);
-        setFeedback("Erro: " + (err?.message || "Não foi possível entrar."));
-      } finally {
-        setLoading(false);
-      }
-    });
-
-    // botões extras
-    document.getElementById("goToSignup").addEventListener("click", () => {
-      window.location.href = "signup.html";
-    });
-
-    document.getElementById("googleSignup").addEventListener("click", async () => {
+      // Aqui você poderia plugar o Firebase Auth depois.
+      const user = {
+        email,
+        loginAt: new Date().toISOString()
+      };
+      localStorage.setItem("dc_current_user", JSON.stringify(user));
       setFeedback("");
-      if (!firebaseReady || !auth) {
-        setFeedback("Google Sign-In não disponível: Firebase não configurado.");
-        return;
-      }
 
-      setLoading(true);
-      try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        await auth.signInWithPopup(provider);
-        window.location.href = REDIRECT_AFTER_LOGIN; // ✅
-      } catch (err) {
-        console.error("Erro Google Sign-In:", err);
-        setFeedback("Erro no Google: " + (err?.message || "Falha no login Google."));
-      } finally {
-        setLoading(false);
-      }
+      window.location.href = REDIRECT_AFTER_LOGIN;
     });
 
-    // “Esqueci a senha” (placeholder)
     document.getElementById("forgotPassword").addEventListener("click", (e) => {
       e.preventDefault();
-      setFeedback("Em breve: recuperação de senha. (Se quiser, eu implemento com Firebase)");
+      setFeedback("Em breve: recuperação de senha (pode ser implementada com Firebase).");
     });
 
-    // UX: limpar feedback ao digitar
     emailEl.addEventListener("input", () => setFeedback(""));
     passEl.addEventListener("input", () => setFeedback(""));
   </script>

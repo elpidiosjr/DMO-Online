@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tiros Digimon - Gacha</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body{
+      background:#020617;
+      color:#e5e7eb;
+      font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+      margin:0;
+      padding:20px;
+      min-height:100vh;
+    }
+    .gacha-container{
+      max-width:960px;
+      margin:0 auto;
+    }
+    .gacha-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:20px;
+      gap:12px;
+    }
+    .gacha-header h1{
+      margin:0;
+      font-size:1.4rem;
+      color:#38bdf8;
+    }
+    .coins{
+      font-weight:600;
+    }
+    .gacha-main{
+      display:grid;
+      grid-template-columns:1.3fr 1fr;
+      gap:18px;
+    }
+    @media (max-width:768px){
+      .gacha-main{grid-template-columns:1fr;}
+    }
+    .gacha-panel{
+      background:linear-gradient(145deg,#020617,#0b1220);
+      border-radius:14px;
+      padding:16px;
+      box-shadow:0 12px 30px rgba(0,0,0,.45);
+      border:1px solid rgba(148,163,184,.25);
+    }
+    .gacha-actions button{
+      margin-right:8px;
+      margin-bottom:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      font-size:.9rem;
+    }
+    .btn-primary{background:#2563eb;color:#fff;}
+    .btn-secondary{background:#111827;color:#e5e7eb;}
+    .btn-primary:hover,.btn-secondary:hover{
+      filter:brightness(1.05);
+    }
+    .result-card{
+      margin-top:14px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .result-card img{
+      width:90px;
+      height:90px;
+      object-fit:contain;
+      background:#fff;
+      border-radius:10px;
+      padding:4px;
+    }
+    .result-name{
+      font-size:1.1rem;
+      font-weight:700;
+      color:#a5b4fc;
+    }
+    .result-level{
+      font-size:.9rem;
+      color:#9ca3af;
+    }
+    .history-list{
+      list-style:none;
+      padding:0;
+      margin:0;
+      font-size:.85rem;
+      max-height:260px;
+      overflow-y:auto;
+    }
+    .history-list li{
+      border-bottom:1px solid rgba(55,65,81,.6);
+      padding:6px 0;
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .topnav{
+      display:flex;
+      gap:8px;
+      padding:8px 12px;
+      background:rgba(15,23,42,0.95);
+      position:sticky;
+      top:0;
+      z-index:20;
+      border-bottom:1px solid rgba(148,163,184,0.2);
+      margin:-20px -20px 16px;
+    }
+    .topnav a{
+      font-size:13px;
+      color:#e5e7eb;
+      text-decoration:none;
+      padding:4px 8px;
+      border-radius:999px;
+      background:rgba(30,64,175,0.5);
+    }
+    .topnav a:hover{
+      background:rgba(59,130,246,0.8);
+    }
+  </style>
+</head>
+<body>
+  <div class="gacha-container">
+    <nav class="topnav">
+      <a href="home.html">🏠 Hub</a>
+      <a href="account.html">👤 Minha conta</a>
+      <a href="index.html">📜 Galeria</a>
+      <a href="shop.html">🛒 Loja</a>
+    </nav>
+
+    <header class="gacha-header">
+      <div>
+        <h1>Tiros Digimon</h1>
+        <small>Use suas coins para invocar novos Digimons.</small>
+      </div>
+      <div class="coins">
+        💰 Coins: <span id="coinsValue">0</span>
+      </div>
+    </header>
+
+    <main class="gacha-main">
+      <section class="gacha-panel">
+        <h2>Invocação</h2>
+        <p>Cada tiro adiciona o Digimon sorteado à sua conta.</p>
+        <div class="gacha-actions">
+          <button class="btn-primary" id="btnSingle">Tirar 1 (100 coins)</button>
+          <button class="btn-secondary" id="btnMulti">Tirar 10 (900 coins)</button>
+        </div>
+        <div id="lastResult"></div>
+      </section>
+
+      <aside class="gacha-panel">
+        <h2>Histórico recente</h2>
+        <ul id="history" class="history-list"></ul>
+      </aside>
+    </main>
+  </div>
+
+  <script src="game-storage.js"></script>
+  <script>
+    const API_URL = 'https://digimon-api.vercel.app/api/digimon';
+    let pool = [];
+
+    const coinsSpan = document.getElementById('coinsValue');
+    const lastResultEl = document.getElementById('lastResult');
+    const historyEl = document.getElementById('history');
+
+    function updateCoinsUI() {
+      coinsSpan.textContent = getCoins();
+    }
+
+    async function loadPool() {
+      if (pool.length) return;
+      try {
+        const cached = JSON.parse(localStorage.getItem('dc_digimon_pool_v1') || '[]');
+        if (cached.length) {
+          pool = cached;
+          return;
+        }
+        const resp = await fetch(API_URL);
+        const data = await resp.json();
+        pool = data;
+        localStorage.setItem('dc_digimon_pool_v1', JSON.stringify(pool));
+      } catch (e) {
+        alert('Erro ao carregar Digimons para os tiros.');
+      }
+    }
+
+    function renderLastResult(digimons) {
+      if (!digimons.length) {
+        lastResultEl.innerHTML = '';
+        return;
+      }
+      const last = digimons[digimons.length - 1];
+      lastResultEl.innerHTML = `
+        <div class="result-card">
+          <img src="${last.img}" alt="${last.name}">
+          <div>
+            <div class="result-name">${last.name}</div>
+            <div class="result-level">${last.level || ''}</div>
+            <small>Adicionado à sua conta!</small>
+          </div>
+        </div>
+      `;
+    }
+
+    function addHistoryEntry(d) {
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${d.name}</span><span>${d.level || ''}</span>`;
+      historyEl.prepend(li);
+      while (historyEl.children.length > 20) {
+        historyEl.removeChild(historyEl.lastChild);
+      }
+    }
+
+    async function doRoll(count, cost) {
+      await loadPool();
+      const coins = getCoins();
+      if (coins < cost) {
+        alert('Coins insuficientes!');
+        return;
+      }
+      addCoins(-cost);
+      updateCoinsUI();
+
+      const results = [];
+      for (let i = 0; i < count; i++) {
+        const r = Math.floor(Math.random() * pool.length);
+        const d = pool[r];
+        results.push(d);
+        addOwned(d);
+        addHistoryEntry(d);
+      }
+      renderLastResult(results);
+    }
+
+    document.getElementById('btnSingle').addEventListener('click', () => {
+      doRoll(1, 100);
+    });
+
+    document.getElementById('btnMulti').addEventListener('click', () => {
+      doRoll(10, 900);
+    });
+
+    updateCoinsUI();
+  </script>
+</body>
+</html>

@@ -1,224 +1,677 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Minha Conta - Digimon</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Minha Conta - Digimon</title>
 
-<style>
-body{
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
-  background:#071022;
-  color:#fff;
-  padding:18px;
-}
+  <style>
+    :root {
+      --bg: #071022;
+      --card-bg: #0b1633;
+      --card-bg-soft: #020617;
+      --accent: #38bdf8;
+      --accent-soft: #1d4ed8;
+      --danger: #ef4444;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border-soft: rgba(148,163,184,0.3);
+    }
 
-a{color:#fff;text-decoration:none}
+    * {
+      box-sizing: border-box;
+    }
 
-.container{
-  max-width:900px;
-  margin:0 auto;
-}
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
+      color: var(--text);
+      padding: 18px;
+      min-height: 100vh;
+    }
 
-.card{
-  background:linear-gradient(180deg,#0b1633,#071022);
-  padding:14px;
-  border-radius:14px;
-  margin-bottom:14px;
-  display:flex;
-  gap:16px;
-  align-items:center;
-  box-shadow:0 10px 25px rgba(0,0,0,.35);
-}
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
-.card img{
-  width:90px;
-  height:90px;
-  object-fit:contain;
-  background:#fff;
-  padding:6px;
-  border-radius:10px;
-}
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
 
-.info{
-  flex:1;
-}
+    /* HEADER */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
 
-.name{
-  font-weight:800;
-  font-size:1.2rem;
-}
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-.stat{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-top:6px;
-  font-size:.9rem;
-}
+    .logo-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #38bdf8, #1e3a8a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, .9);
+    }
 
-.bar{
-  flex:1;
-  height:10px;
-  background:#1e293b;
-  border-radius:999px;
-  overflow:hidden;
-}
+    .header-title {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
 
-.fill{
-  height:100%;
-  width:0;
-  transition:width .6s ease;
-}
+    .header-title h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: var(--accent);
+    }
 
-.atk{background:#ef4444}
-.def{background:#3b82f6}
-.esp{background:#facc15}
+    .header-title span {
+      font-size: .85rem;
+      color: var(--muted);
+    }
 
-.actions{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
 
-button{
-  border:none;
-  padding:8px 12px;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:700;
-}
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: .9rem;
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #111827;
+      color: var(--text);
+    }
 
-.train{background:#06b6d4}
-.battle{background:#16a34a}
-.remove{background:#ef4444}
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      color: #fff;
+      box-shadow: 0 8px 22px rgba(37, 99, 235, .55);
+    }
 
-.pagination{
-  display:flex;
-  justify-content:center;
-  gap:12px;
-  margin-top:18px;
-}
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid rgba(148,163,184,.35);
+    }
 
-.pagination button{
-  background:#1e293b;
-  color:#fff;
-}
-</style>
+    .btn:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* SUMMARY / TEAM */
+    .summary-card {
+      background: linear-gradient(145deg, rgba(56,189,248,0.15), rgba(15,23,42,0.9));
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(56,189,248,0.35);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      box-shadow: 0 16px 40px rgba(15,23,42,0.85);
+    }
+
+    .summary-main h2 {
+      margin: 0 0 4px;
+      font-size: 1.1rem;
+    }
+
+    .summary-main p {
+      margin: 0;
+      font-size: .85rem;
+      color: var(--muted);
+    }
+
+    .team-info {
+      font-size: .9rem;
+      text-align: right;
+    }
+
+    .tag-team {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15,23,42,.8);
+      border: 1px solid rgba(148,163,184,.4);
+      font-size: .75rem;
+      margin-left: 4px;
+    }
+
+    .team-digimons {
+      margin-top: 4px;
+      font-weight: 600;
+      color: #e0f2fe;
+    }
+
+    /* COLLECTION SECTION */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      margin-top: 10px;
+    }
+
+    .section-header h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .section-header span {
+      font-size: .85rem;
+      color: var(--muted);
+    }
+
+    .hint {
+      margin-top: 18px;
+      font-size: .8rem;
+      color: var(--muted);
+      opacity: .85;
+    }
+
+    /* GRID */
+    #list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .empty-state {
+      background: linear-gradient(145deg, #020617, #020617);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px dashed rgba(148,163,184,.55);
+      text-align: center;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .empty-state strong {
+      color: var(--accent);
+    }
+
+    /* CARD */
+    .card {
+      background: radial-gradient(circle at top, #1f2937, #020617);
+      border-radius: 16px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 14px 30px rgba(0,0,0,.75);
+      border: 1px solid rgba(31,41,55,.9);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(56,189,248,.18), transparent 60%);
+      opacity: .8;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .card img {
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 6px;
+      border: 1px solid rgba(15,23,42,.9);
+      flex-shrink: 0;
+    }
+
+    .info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .info-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 2px;
+    }
+
+    .info h3 {
+      margin: 0;
+      font-size: 1rem;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .info small {
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    .badge-level {
+      font-size: .7rem;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.6);
+      background: rgba(15,23,42,.85);
+    }
+
+    .tag-in-team {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: .75rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(22,163,74,.15);
+      border: 1px solid rgba(34,197,94,.5);
+      color: #bbf7d0;
+      margin-top: 4px;
+    }
+
+    .tag-in-team span {
+      font-size: .8rem;
+    }
+
+    /* ACTIONS */
+    .actions {
+      position: relative;
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+
+    .btn-small {
+      font-size: .8rem;
+      padding: 6px 10px;
+    }
+
+    .btn-remove {
+      background: rgba(127,29,29,.9);
+      color: #fee2e2;
+      border: 1px solid rgba(248,113,113,.7);
+    }
+
+    .btn-team-active {
+      background: rgba(22,163,74, .9);
+      border: 1px solid rgba(74,222,128,.8);
+      color: #ecfdf5;
+    }
+
+    /* PAGINATION */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+      font-size: .85rem;
+    }
+
+    .pagination button {
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: .85rem;
+      border: 1px solid rgba(148,163,184, .6);
+      background: rgba(15,23,42, .9);
+      color: var(--text);
+      cursor: pointer;
+      min-width: 90px;
+    }
+
+    .pagination button:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+      .summary-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .team-info {
+        text-align: left;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <div class="container">
 
-<div class="container">
-  <a href="index.html">← Voltar</a>
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo-circle">D</div>
+        <div class="header-title">
+          <h1>Minha Conta</h1>
+          <span>Gerencie sua coleção e seu time de batalha</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="home.html">
+          <button class="btn btn-ghost">⬅ Voltar para o Hub</button>
+        </a>
+        <a href="battle.html">
+          <button class="btn btn-primary">⚔ Ir para batalha</button>
+        </a>
+      </div>
+    </header>
 
-  <h1>Meu Time</h1>
-  <p style="color:#94a3b8">Escolha um Digimon para batalhar contra um oponente aleatório</p>
+    <!-- RESUMO / TIME -->
+    <section class="summary-card">
+      <div class="summary-main">
+        <h2>Time de batalha</h2>
+        <p>Escolha até <strong>2 Digimons</strong> para montar seu time. Eles serão usados na tela de batalha.</p>
+      </div>
+      <div class="team-info">
+        <div>
+          Status do time
+          <span class="tag-team">
+            <span>●</span>
+            <span id="teamStatusText">vazio</span>
+          </span>
+        </div>
+        <div id="teamDigimons" class="team-digimons">
+          Nenhum Digimon selecionado.
+        </div>
+      </div>
+    </section>
 
-  <div id="list">Carregando...</div>
+    <!-- COLEÇÃO -->
+    <section>
+      <div class="section-header">
+        <h2>Minha coleção</h2>
+        <span id="totalCount">Carregando...</span>
+      </div>
 
-  <div class="pagination">
-    <button id="prev">◀ Anterior</button>
-    <button id="next">Próxima ▶</button>
+      <div id="list"></div>
+
+      <div class="pagination">
+        <button id="prev">◀ Anterior</button>
+        <span id="pageInfo">Página 1</span>
+        <button id="next">Próximo ▶</button>
+      </div>
+
+      <p class="hint">
+        Dica: novos Digimons entram aqui quando você os obtém pelos <strong>tiros (gacha)</strong>
+        ou pela galeria. Depois é só marcar quem entra no seu time e partir para a batalha!
+      </p>
+    </section>
   </div>
-</div>
 
-<script>
-const API_URL = 'https://digimon-api.vercel.app/api/digimon';
-const PER_PAGE = 3;
-let page = 0;
-let apiCache = [];
+  <script>
+    /* ==========================
+       ARMAZENAMENTO (localStorage)
+       ========================== */
 
-function getMap(){
-  try{
-    return JSON.parse(localStorage.getItem('digimon_stats_v1'))||{};
-  }catch{
-    return {};
-  }
-}
-
-async function loadAPI(){
-  if(apiCache.length) return apiCache;
-  const res = await fetch(API_URL);
-  apiCache = await res.json();
-  return apiCache;
-}
-
-async function render(){
-  const list = document.getElementById('list');
-  const map = getMap();
-  const names = Object.keys(map);
-
-  if(!names.length){
-    list.innerHTML='<p style="color:#94a3b8">Nenhum Digimon treinado.</p>';
-    return;
-  }
-
-  const api = await loadAPI();
-  list.innerHTML='';
-
-  const start = page * PER_PAGE;
-  const slice = names.slice(start,start+PER_PAGE);
-
-  slice.forEach(name=>{
-    const s = map[name];
-    const dig = api.find(d=>d.name.toLowerCase()===name.toLowerCase());
-
-    const card = document.createElement('div');
-    card.className='card';
-
-    card.innerHTML=`
-      <img src="${dig?.img||''}">
-      <div class="info">
-        <div class="name">${name}</div>
-
-        <div class="stat">
-          ⚔️ <div class="bar"><div class="fill atk" style="width:${s.atk}%"></div></div>
-        </div>
-
-        <div class="stat">
-          🛡️ <div class="bar"><div class="fill def" style="width:${s.def}%"></div></div>
-        </div>
-
-        <div class="stat">
-          ✨ <div class="bar"><div class="fill esp" style="width:${s.esp}%"></div></div>
-        </div>
-      </div>
-
-      <div class="actions">
-        <a href="train.html?name=${encodeURIComponent(name)}">
-          <button class="train">Treinar</button>
-        </a>
-
-        <a href="battle.html?name=${encodeURIComponent(name)}">
-          <button class="battle">Batalhar</button>
-        </a>
-
-        <button class="remove" data-name="${name}">Remover</button>
-      </div>
-    `;
-
-    list.appendChild(card);
-  });
-
-  document.querySelectorAll('.remove').forEach(b=>{
-    b.onclick=()=>{
-      const map = getMap();
-      delete map[b.dataset.name];
-      localStorage.setItem('digimon_stats_v1',JSON.stringify(map));
-      render();
+    const STORAGE_KEYS = {
+      OWNED:  'dc_owned_digimons_v1',   // coleção do jogador
+      BATTLE: 'dc_battle_team_v1'       // time escolhido para batalha
     };
-  });
 
-  document.getElementById('prev').disabled = page===0;
-  document.getElementById('next').disabled = start+PER_PAGE >= names.length;
-}
+    function getJson(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (e) {
+        console.warn('Erro lendo localStorage', e);
+        return fallback;
+      }
+    }
 
-document.getElementById('prev').onclick=()=>{page--;render();};
-document.getElementById('next').onclick=()=>{page++;render();};
+    function setJson(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (e) {
+        console.warn('Erro salvando localStorage', e);
+      }
+    }
 
-render();
-</script>
+    // Coleção
+    function getOwned() {
+      return getJson(STORAGE_KEYS.OWNED, []);
+    }
 
+    function setOwned(list) {
+      setJson(STORAGE_KEYS.OWNED, list);
+    }
+
+    function removeOwnedByName(name) {
+      const owned = getOwned().filter(d => d.name !== name);
+      setOwned(owned);
+
+      // também remove do time se estiver
+      const team = getBattleTeam().filter(d => d.name !== name);
+      setBattleTeam(team);
+    }
+
+    // Time de batalha (até 2)
+    function getBattleTeam() {
+      return getJson(STORAGE_KEYS.BATTLE, []);
+    }
+
+    function setBattleTeam(team) {
+      setJson(STORAGE_KEYS.BATTLE, team.slice(0, 2));
+    }
+
+    function toggleTeam(digimon) {
+      let team = getBattleTeam();
+      const idx = team.findIndex(x => x.name === digimon.name);
+
+      if (idx !== -1) {
+        // já está no time -> remove
+        team.splice(idx, 1);
+      } else {
+        // não está no time -> adiciona
+        if (team.length >= 2) {
+          // se já tem 2, remove o mais antigo (primeiro)
+          team.shift();
+        }
+        team.push(digimon);
+      }
+      setBattleTeam(team);
+    }
+
+    /* ==========================
+       UI / RENDERIZAÇÃO
+       ========================== */
+
+    const listEl = document.getElementById('list');
+    const totalCountEl = document.getElementById('totalCount');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+    const pageInfoEl = document.getElementById('pageInfo');
+    const teamStatusTextEl = document.getElementById('teamStatusText');
+    const teamDigimonsEl = document.getElementById('teamDigimons');
+
+    let page = 0;
+    const PER_PAGE = 6;
+
+    function renderTeamInfo() {
+      const team = getBattleTeam();
+      if (!team.length) {
+        teamStatusTextEl.textContent = 'vazio';
+        teamDigimonsEl.textContent = 'Nenhum Digimon selecionado.';
+        return;
+      }
+
+      teamStatusTextEl.textContent = team.length === 1 ? '1 Digimon' : '2 Digimons';
+
+      const names = team.map(d => d.name).join(', ');
+      teamDigimonsEl.textContent = names;
+    }
+
+    function renderCollection() {
+      const owned = getOwned();
+      const total = owned.length;
+
+      if (!total) {
+        totalCountEl.textContent = 'Você ainda não possui Digimons na conta.';
+        listEl.innerHTML = `
+          <div class="empty-state">
+            <p><strong>Sua coleção está vazia.</strong></p>
+            <p>Use os tiros (gacha) ou a galeria para obter seus primeiros Digimons e montar o seu time!</p>
+          </div>
+        `;
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        pageInfoEl.textContent = 'Página 1';
+        renderTeamInfo();
+        return;
+      }
+
+      totalCountEl.textContent = `${total} Digimon${total === 1 ? '' : 's'} na conta`;
+
+      const maxPage = Math.max(0, Math.ceil(total / PER_PAGE) - 1);
+      if (page > maxPage) page = maxPage;
+
+      const start = page * PER_PAGE;
+      const subset = owned.slice(start, start + PER_PAGE);
+
+      listEl.innerHTML = '';
+      const team = getBattleTeam();
+
+      subset.forEach(d => {
+        const inTeam = team.some(x => x.name === d.name);
+
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        card.innerHTML = `
+          <div class="card-inner">
+            <img src="${d.img}" alt="${d.name}">
+            <div class="info">
+              <div class="info-title">
+                <h3 title="${d.name}">${d.name}</h3>
+                <span class="badge-level">${d.level || ''}</span>
+              </div>
+              <small>Parte da sua coleção</small>
+              ${inTeam ? `
+                <div class="tag-in-team">
+                  <span>★</span>
+                  <span>No time de batalha</span>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+          <div class="actions">
+            <button 
+              class="btn btn-small ${inTeam ? 'btn-team-active' : ''}" 
+              data-name="${d.name}"
+              data-action="team"
+            >
+              ${inTeam ? 'Remover do time' : 'Colocar no time'}
+            </button>
+            <button 
+              class="btn btn-small btn-remove" 
+              data-name="${d.name}"
+              data-action="remove"
+            >
+              Remover da conta
+            </button>
+          </div>
+        `;
+
+        listEl.appendChild(card);
+      });
+
+      prevBtn.disabled = page === 0;
+      nextBtn.disabled = start + PER_PAGE >= total;
+      pageInfoEl.textContent = `Página ${page + 1} de ${maxPage + 1}`;
+
+      attachCardEvents();
+      renderTeamInfo();
+    }
+
+    function attachCardEvents() {
+      listEl.querySelectorAll('button[data-action="team"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const owned = getOwned();
+          const d = owned.find(x => x.name === name);
+          if (!d) return;
+
+          toggleTeam(d);
+          renderCollection();
+        });
+      });
+
+      listEl.querySelectorAll('button[data-action="remove"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          if (!confirm(`Remover ${name} da sua conta?`)) return;
+          removeOwnedByName(name);
+          renderCollection();
+        });
+      });
+    }
+
+    // Paginação
+    prevBtn.addEventListener('click', () => {
+      if (page > 0) {
+        page--;
+        renderCollection();
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      page++;
+      renderCollection();
+    });
+
+    // Inicialização
+    renderCollection();
+  </script>
 </body>
 </html>
