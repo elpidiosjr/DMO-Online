@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Loja de Itens - Digimon Cards</title>
+
+  <style>
+    :root{
+      --bg: #020617;
+      --bg-soft: #020617;
+      --card: #020617;
+      --card2: #020617;
+      --accent: #38bdf8;
+      --accent-strong: #2563eb;
+      --accent-soft: rgba(56,189,248,0.2);
+      --danger: #ef4444;
+      --success: #22c55e;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border-soft: rgba(148,163,184,0.35);
+    }
+
+    *{box-sizing:border-box;}
+
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 50%, #000 100%);
+      color:var(--text);
+      padding:18px;
+      min-height:100vh;
+    }
+
+    a{
+      color:inherit;
+      text-decoration:none;
+    }
+
+    .container{
+      max-width:1040px;
+      margin:0 auto;
+    }
+
+    /* HEADER */
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      margin-bottom:22px;
+    }
+
+    .header-left{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .logo-circle{
+      width:36px;
+      height:36px;
+      border-radius:999px;
+      background: radial-gradient(circle at 30% 20%, #38bdf8, #1e3a8a);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:800;
+      font-size:1.1rem;
+      box-shadow:0 10px 25px rgba(15,23,42,.9);
+    }
+
+    .header-title{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+
+    .header-title h1{
+      margin:0;
+      font-size:1.5rem;
+      color:var(--accent);
+    }
+
+    .header-title span{
+      font-size:.85rem;
+      color:var(--muted);
+    }
+
+    .header-right{
+      text-align:right;
+      font-size:.9rem;
+    }
+
+    .coins{
+      font-weight:600;
+      font-size:1rem;
+    }
+
+    .header-actions{
+      margin-top:6px;
+      display:flex;
+      gap:8px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      border:none;
+      border-radius:999px;
+      padding:7px 12px;
+      font-size:.85rem;
+      cursor:pointer;
+      font-weight:600;
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      background:#111827;
+      color:var(--text);
+      border:1px solid rgba(30,64,175,.8);
+    }
+    .btn-ghost{
+      background:transparent;
+      border:1px solid var(--border-soft);
+    }
+
+    /* INFO BARRA */
+    .info-bar{
+      background: linear-gradient(135deg, rgba(56,189,248,0.18), rgba(15,23,42,0.95));
+      border-radius:14px;
+      padding:10px 14px;
+      margin-bottom:18px;
+      border:1px solid rgba(56,189,248,.35);
+      font-size:.85rem;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      box-shadow:0 14px 32px rgba(15,23,42,.9);
+    }
+
+    .info-bar strong{
+      color:#e0f2fe;
+    }
+
+    .info-status{
+      font-size:.8rem;
+      color:var(--muted);
+    }
+
+    /* GRID ITENS */
+    .section-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin:8px 0 12px;
+    }
+
+    .section-header h2{
+      margin:0;
+      font-size:1.1rem;
+    }
+
+    .section-header span{
+      font-size:.85rem;
+      color:var(--muted);
+    }
+
+    .shop-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:14px;
+      margin-bottom:20px;
+    }
+
+    .item-card{
+      position:relative;
+      background: radial-gradient(circle at top, #0f172a, #020617);
+      border-radius:16px;
+      padding:12px 12px 13px;
+      border:1px solid rgba(30,64,175,.8);
+      box-shadow:0 14px 32px rgba(0,0,0,.85);
+      overflow:hidden;
+    }
+
+    .item-card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: radial-gradient(circle at top left, rgba(56,189,248,.15), transparent 58%);
+      opacity:.9;
+      pointer-events:none;
+    }
+
+    .item-inner{
+      position:relative;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .item-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:6px;
+    }
+
+    .item-name{
+      font-weight:600;
+      font-size:1rem;
+    }
+
+    .item-tag{
+      font-size:.7rem;
+      padding:3px 7px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.7);
+      background:rgba(15,23,42,.9);
+      color:#e5e7eb;
+      white-space:nowrap;
+    }
+
+    .item-desc{
+      font-size:.8rem;
+      color:var(--muted);
+      min-height:34px;
+    }
+
+    .item-footer{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:6px;
+      margin-top:4px;
+    }
+
+    .price{
+      font-size:.9rem;
+      font-weight:600;
+    }
+
+    .price small{
+      font-size:.75rem;
+      color:var(--muted);
+      font-weight:400;
+    }
+
+    .owned{
+      font-size:.8rem;
+      color:#bbf7d0;
+    }
+
+    .btn-buy{
+      border-radius:999px;
+      border:none;
+      padding:7px 11px;
+      font-size:.85rem;
+      font-weight:600;
+      cursor:pointer;
+      background: linear-gradient(135deg,#22c55e,#4ade80);
+      color:#052e16;
+      white-space:nowrap;
+      min-width:90px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      box-shadow:0 10px 24px rgba(22,163,74,.65);
+    }
+
+    .btn-buy:disabled{
+      opacity:.5;
+      cursor:not-allowed;
+      box-shadow:none;
+    }
+
+    /* LOG MENSAGENS */
+    .log-panel{
+      background:rgba(15,23,42,.95);
+      border-radius:14px;
+      border:1px solid rgba(75,85,99,.8);
+      padding:10px 12px;
+      font-size:.8rem;
+      max-height:130px;
+      overflow-y:auto;
+    }
+
+    .log-entry{
+      margin:3px 0;
+    }
+
+    .log-entry.ok{
+      color:#bbf7d0;
+    }
+    .log-entry.err{
+      color:#fecaca;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width:640px){
+      .header{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .header-right{
+        text-align:left;
+        width:100%;
+      }
+      .header-actions{
+        justify-content:flex-start;
+      }
+      .info-bar{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo-circle">D</div>
+        <div class="header-title">
+          <h1>Loja de Itens</h1>
+          <span>Compre itens para fortalecer seus Digimons</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="coins">
+          💰 Coins: <span id="coinsValue">0</span>
+        </div>
+        <div class="header-actions">
+          <a href="home.html">
+            <button class="btn btn-ghost">⬅ Voltar para o Hub</button>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- INFO -->
+    <section class="info-bar">
+      <div>
+        <strong>Bem-vindo à loja!</strong>
+        <div>Os itens comprados vão para o seu inventário e poderão ser usados em batalhas/treinos futuramente.</div>
+      </div>
+      <div class="info-status" id="infoStatus">
+        Escolha um item para comprar.
+      </div>
+    </section>
+
+    <!-- ITENS -->
+    <section>
+      <div class="section-header">
+        <h2>Itens disponíveis</h2>
+        <span id="inventorySummary">Carregando inventário...</span>
+      </div>
+
+      <div class="shop-grid" id="shopGrid"></div>
+
+      <div class="section-header" style="margin-top:6px;">
+        <h2>Últimas ações</h2>
+        <span style="font-size:.8rem;color:var(--muted);">Registo simples das compras realizadas.</span>
+      </div>
+
+      <div class="log-panel" id="logPanel"></div>
+    </section>
+  </div>
+
+  <script>
+    /* ==========================
+       STORAGE / MOEDAS / ITENS
+       ========================== */
+
+    const STORAGE_KEYS = {
+      COINS: 'dc_coins_v1',
+      ITEMS: 'dc_items_v1'
+    };
+
+    function getJson(key, fallback){
+      try{
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      }catch(e){
+        console.warn('Erro lendo localStorage', e);
+        return fallback;
+      }
+    }
+
+    function setJson(key, value){
+      try{
+        localStorage.setItem(key, JSON.stringify(value));
+      }catch(e){
+        console.warn('Erro salvando localStorage', e);
+      }
+    }
+
+    function getCoins(){
+      let coins = getJson(STORAGE_KEYS.COINS, null);
+      if(coins === null){
+        coins = 1000; // caso nunca tenha sido setado
+        setJson(STORAGE_KEYS.COINS, coins);
+      }
+      return coins;
+    }
+
+    function setCoins(v){
+      setJson(STORAGE_KEYS.COINS, v);
+    }
+
+    function addCoins(delta){
+      const current = getCoins();
+      const next = Math.max(0, current + delta);
+      setCoins(next);
+      return next;
+    }
+
+    function getItems(){
+      return getJson(STORAGE_KEYS.ITEMS, []);
+    }
+
+    function setItems(list){
+      setJson(STORAGE_KEYS.ITEMS, list);
+    }
+
+    function addItem(itemId, name, qtyDelta){
+      const items = getItems();
+      let found = items.find(i => i.id === itemId);
+      if(!found){
+        found = { id: itemId, name, qty: 0 };
+        items.push(found);
+      }
+      found.qty = Math.max(0, (found.qty || 0) + qtyDelta);
+      setItems(items);
+    }
+
+    function getItemQty(itemId){
+      const items = getItems();
+      const found = items.find(i => i.id === itemId);
+      return found ? (found.qty || 0) : 0;
+    }
+
+    /* ==========================
+       SHOP
+       ========================== */
+
+    const shopItems = [
+      {
+        id: 'potion_small',
+        name: 'Poção Pequena de Cura',
+        desc: '+20 HP para um Digimon durante a batalha.',
+        price: 150,
+        tag: 'Cura'
+      },
+      {
+        id: 'potion_medium',
+        name: 'Poção Média de Cura',
+        desc: '+50 HP para um Digimon durante a batalha.',
+        price: 300,
+        tag: 'Cura'
+      },
+      {
+        id: 'atk_boost',
+        name: 'Booster de Ataque',
+        desc: 'Aumenta o ataque em +10 durante uma luta.',
+        price: 260,
+        tag: 'Buff'
+      },
+      {
+        id: 'def_boost',
+        name: 'Escudo Digital',
+        desc: 'Aumenta a defesa do Digimon por uma batalha.',
+        price: 260,
+        tag: 'Buff'
+      },
+      {
+        id: 'xp_chip',
+        name: 'Chip de Treino',
+        desc: 'Aumenta a experiência após a luta (efeito futuro).',
+        price: 220,
+        tag: 'Treino'
+      },
+      {
+        id: 'premium_pack',
+        name: 'Pacote Premium',
+        desc: 'Melhora rara com vários efeitos (para usar depois).',
+        price: 500,
+        tag: 'Especial'
+      }
+    ];
+
+    const coinsSpan = document.getElementById('coinsValue');
+    const shopGrid = document.getElementById('shopGrid');
+    const infoStatus = document.getElementById('infoStatus');
+    const inventorySummary = document.getElementById('inventorySummary');
+    const logPanel = document.getElementById('logPanel');
+
+    function updateCoinsUI(){
+      coinsSpan.textContent = getCoins();
+    }
+
+    function updateInventorySummary(){
+      const items = getItems();
+      if(!items.length){
+        inventorySummary.textContent = 'Você ainda não possui itens.';
+      }else{
+        const total = items.reduce((acc, it) => acc + (it.qty || 0), 0);
+        inventorySummary.textContent =
+          `Você possui ${total} item${total === 1 ? '' : 's'} no inventário.`;
+      }
+    }
+
+    function addLog(message, type = 'ok'){
+      const div = document.createElement('div');
+      div.className = `log-entry ${type}`;
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2,'0');
+      const mm = String(now.getMinutes()).padStart(2,'0');
+      div.textContent = `[${hh}:${mm}] ${message}`;
+      logPanel.prepend(div);
+      while(logPanel.children.length > 25){
+        logPanel.removeChild(logPanel.lastChild);
+      }
+    }
+
+    function renderShop(){
+      shopGrid.innerHTML = '';
+      shopItems.forEach(item => {
+        const qty = getItemQty(item.id);
+        const card = document.createElement('div');
+        card.className = 'item-card';
+
+        card.innerHTML = `
+          <div class="item-inner">
+            <div class="item-header">
+              <div>
+                <div class="item-name">${item.name}</div>
+              </div>
+              <div class="item-tag">${item.tag}</div>
+            </div>
+            <div class="item-desc">${item.desc}</div>
+            <div class="item-footer">
+              <div>
+                <div class="price">💰 ${item.price} coins</div>
+                <div class="owned">
+                  Você possui: <span data-owned="${item.id}">${qty}</span>x
+                </div>
+              </div>
+              <button class="btn-buy" data-buy="${item.id}">
+                Comprar
+              </button>
+            </div>
+          </div>
+        `;
+
+        shopGrid.appendChild(card);
+      });
+
+      // eventos de compra
+      shopGrid.querySelectorAll('button[data-buy]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.buy;
+          handleBuy(id);
+        });
+      });
+    }
+
+    function refreshOwnedLabels(){
+      shopItems.forEach(item => {
+        const span = shopGrid.querySelector(`[data-owned="${item.id}"]`);
+        if(span){
+          span.textContent = getItemQty(item.id);
+        }
+      });
+    }
+
+    function handleBuy(itemId){
+      const item = shopItems.find(i => i.id === itemId);
+      if(!item) return;
+
+      const coins = getCoins();
+      if(coins < item.price){
+        infoStatus.textContent = 'Coins insuficientes para esta compra.';
+        addLog(`Compra falhou: coins insuficientes para "${item.name}".`, 'err');
+        return;
+      }
+
+      addCoins(-item.price);
+      addItem(item.id, item.name, 1);
+
+      updateCoinsUI();
+      updateInventorySummary();
+      refreshOwnedLabels();
+
+      infoStatus.textContent = `Compra realizada: "${item.name}".`;
+      addLog(`Você comprou 1x "${item.name}".`, 'ok');
+    }
+
+    // INIT
+    updateCoinsUI();
+    updateInventorySummary();
+    renderShop();
+  </script>
+</body>
+</html>
