@@ -18,107 +18,309 @@
       background-attachment: fixed;
       background-color: #0f172a;
     }
+
+    @media (max-width: 640px) {
+      body.bg-digimon {
+        background-image:
+          linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
+          url('./image/digimonw3.jpg');
+        background-attachment: scroll;
+      }
+    }
   </style>
 </head>
-<body class="bg-digimon min-h-screen flex items-center justify-center px-4">
-  <div class="max-w-md w-full bg-slate-900/80 border border-slate-700/60 rounded-2xl shadow-2xl shadow-black/40 p-6 backdrop-blur">
-    <div class="flex items-center gap-3 mb-6">
-      <img src="./image/myacc.png" alt="Digimon" class="w-10 h-10 rounded-lg object-contain bg-slate-800 p-1" />
-      <div>
-        <h1 class="text-xl font-bold text-cyan-300">Digimon Cards</h1>
-        <p class="text-xs text-slate-300">Faça login para entrar no mundo digital</p>
+
+<body class="bg-digimon min-h-screen text-white flex items-center justify-center px-4 py-10">
+  <main class="w-full max-w-md">
+    <section
+      class="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-2xl backdrop-blur-md"
+      aria-label="Área de login"
+    >
+      <!-- topo decorativo -->
+      <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-yellow-400 via-cyan-400 to-blue-500"></div>
+
+      <div class="p-7 sm:p-9">
+        <!-- HEADER -->
+        <header class="text-center">
+          <p class="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-300">
+            Digimon Cards
+          </p>
+          <h1 class="mt-1 text-3xl font-extrabold tracking-tight">
+            Faça login para entrar no mundo digital
+          </h1>
+          <p class="mt-2 text-sm text-slate-300">
+            Use o login de teste <span class="font-mono text-cyan-300">teste@teste.com</span> /
+            <span class="font-mono text-cyan-300">1234</span>.
+          </p>
+        </header>
+
+        <!-- ALERTA / FEEDBACK -->
+        <p
+          id="feedback"
+          class="mt-4 hidden rounded-lg border border-red-500/70 bg-red-900/50 px-3 py-2 text-xs sm:text-sm text-red-100"
+        ></p>
+
+        <!-- FORM -->
+        <form id="loginForm" class="mt-5 space-y-4">
+          <!-- E-MAIL -->
+          <div>
+            <label for="emailLogin" class="block text-sm font-medium text-slate-100">
+              E-mail
+            </label>
+            <div class="mt-1">
+              <input
+                id="emailLogin"
+                type="email"
+                autocomplete="email"
+                required
+                class="block w-full rounded-lg border border-slate-600/80 bg-slate-900/80 px-3 py-2 text-sm sm:text-base text-white outline-none ring-2 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/40"
+                placeholder="voce@exemplo.com"
+              />
+            </div>
+          </div>
+
+          <!-- SENHA -->
+          <div>
+            <div class="flex items-center justify-between">
+              <label for="passwordLogin" class="block text-sm font-medium text-slate-100">
+                Senha
+              </label>
+              <button
+                type="button"
+                id="togglePassword"
+                class="text-xs text-cyan-300 hover:text-cyan-200 underline-offset-2 hover:underline"
+              >
+                Mostrar
+              </button>
+            </div>
+            <div class="mt-1 relative">
+              <input
+                id="passwordLogin"
+                type="password"
+                autocomplete="current-password"
+                required
+                class="block w-full rounded-lg border border-slate-600/80 bg-slate-900/80 px-3 py-2 text-sm sm:text-base text-white outline-none ring-2 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/40"
+                placeholder="Sua senha"
+              />
+            </div>
+          </div>
+
+          <!-- LEMBRAR DE MIM + ESQUECI -->
+          <div class="flex items-center justify-between gap-3">
+            <label class="flex items-center gap-2 text-xs sm:text-sm text-slate-200">
+              <input
+                id="rememberMe"
+                type="checkbox"
+                class="h-3.5 w-3.5 rounded border-slate-500 bg-slate-900 text-cyan-400 focus:ring-cyan-400"
+              />
+              <span>Lembrar de mim</span>
+            </label>
+
+            <button
+              type="button"
+              id="forgotPassword"
+              class="text-xs sm:text-sm text-slate-300 hover:text-slate-100 underline-offset-2 hover:underline"
+            >
+              Esqueci a senha
+            </button>
+          </div>
+
+          <!-- BOTÃO ENTRAR -->
+          <div class="pt-1">
+            <button
+              id="loginBtn"
+              type="submit"
+              class="flex w-full items-center justify-center rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2.5 text-sm sm:text-base font-semibold text-white shadow-lg shadow-cyan-500/30 transition hover:from-cyan-400 hover:to-blue-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <span id="loginBtnText">Entrar</span>
+              <span id="loginBtnLoading" class="hidden items-center gap-2 text-xs">
+                <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                </svg>
+                Entrando...
+              </span>
+            </button>
+          </div>
+        </form>
+
+        <!-- RODAPÉ -->
+        <p class="mt-5 text-[0.72rem] text-slate-400 text-center leading-relaxed">
+          Login ainda é local e de teste. No futuro você pode integrar com Firebase/Auth
+          ou outra API de autenticação real.
+        </p>
       </div>
-    </div>
-
-    <form id="loginForm" class="space-y-4">
-      <div>
-        <label for="email" class="block text-sm font-medium text-slate-200 mb-1">E-mail</label>
-        <input
-          id="email"
-          type="email"
-          required
-          class="w-full rounded-lg border border-slate-600 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-          placeholder="voce@exemplo.com"
-        />
-      </div>
-
-      <div>
-        <label for="password" class="block text-sm font-medium text-slate-200 mb-1">Senha</label>
-        <input
-          id="password"
-          type="password"
-          required
-          minlength="4"
-          class="w-full rounded-lg border border-slate-600 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-          placeholder="••••••••"
-        />
-      </div>
-
-      <div class="flex items-center justify-between text-xs text-slate-300">
-        <label class="flex items-center gap-2">
-          <input type="checkbox" id="remember" class="rounded border-slate-500 bg-slate-900 text-cyan-400 focus:ring-cyan-400" />
-          Lembrar de mim
-        </label>
-        <button type="button" id="forgotPassword" class="hover:text-cyan-300 underline">
-          Esqueci a senha
-        </button>
-      </div>
-
-      <button
-        type="submit"
-        class="w-full mt-1 inline-flex items-center justify-center rounded-lg bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-lg shadow-cyan-500/30 hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:ring-offset-2 focus:ring-offset-slate-900 transition"
-      >
-        Entrar
-      </button>
-
-      <p id="feedback" class="text-xs text-center text-rose-300 mt-1 h-4"></p>
-    </form>
-
-    <p class="mt-6 text-[11px] text-center text-slate-400">
-      Futuro: integrar com Firebase/Auth de verdade. Por enquanto, login é local.
-    </p>
-  </div>
+    </section>
+  </main>
 
   <script>
-    const REDIRECT_AFTER_LOGIN = "home.html"; // <<< AGORA VAI PARA O HUB
+    // ====== CONFIG "FAKE" LOGIN ======
+    const REDIRECT_AFTER_LOGIN = "home.html";
 
+    // credenciais de teste (pode mudar se quiser)
+    const TEST_EMAIL = "teste@teste.com";
+    const TEST_PASSWORD = "1234";
+
+    const KEYS = {
+      EMAIL: "dc_user_email",
+      COINS: "dc_coins_v1",
+      REMEMBER: "dc_login_remember",
+      SAVED_EMAIL: "dc_login_saved_email",
+    };
+
+    // ELEMENTOS
     const form = document.getElementById("loginForm");
-    const emailEl = document.getElementById("email");
-    const passEl = document.getElementById("password");
+    const emailEl = document.getElementById("emailLogin");
+    const passEl = document.getElementById("passwordLogin");
+    const rememberEl = document.getElementById("rememberMe");
     const feedbackEl = document.getElementById("feedback");
+    const loginBtn = document.getElementById("loginBtn");
+    const loginBtnText = document.getElementById("loginBtnText");
+    const loginBtnLoading = document.getElementById("loginBtnLoading");
 
+    // ====== HELPERS ======
     function setFeedback(msg) {
-      feedbackEl.textContent = msg || "";
+      if (!msg) {
+        feedbackEl.classList.add("hidden");
+        feedbackEl.textContent = "";
+        return;
+      }
+      feedbackEl.textContent = msg;
+      feedbackEl.classList.remove("hidden");
     }
 
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const email = emailEl.value.trim();
-      const pass = passEl.value.trim();
+    function setLoading(isLoading) {
+      loginBtn.disabled = !!isLoading;
+      if (isLoading) {
+        loginBtnText.classList.add("hidden");
+        loginBtnLoading.classList.remove("hidden");
+        loginBtnLoading.classList.add("flex");
+      } else {
+        loginBtnText.classList.remove("hidden");
+        loginBtnLoading.classList.add("hidden");
+        loginBtnLoading.classList.remove("flex");
+      }
+    }
 
-      if (!email || !pass) {
+    function initRememberMeUI() {
+      try {
+        const remember = localStorage.getItem(KEYS.REMEMBER) === "1";
+        const savedEmail = localStorage.getItem(KEYS.SAVED_EMAIL) || "";
+        if (remember && savedEmail) {
+          rememberEl.checked = true;
+          emailEl.value = savedEmail;
+        }
+      } catch (e) {
+        console.warn("Erro ao restaurar lembrar-me:", e);
+      }
+    }
+
+    function persistRememberMe(email) {
+      try {
+        if (rememberEl.checked) {
+          localStorage.setItem(KEYS.REMEMBER, "1");
+          localStorage.setItem(KEYS.SAVED_EMAIL, email);
+        } else {
+          localStorage.removeItem(KEYS.REMEMBER);
+          localStorage.removeItem(KEYS.SAVED_EMAIL);
+        }
+      } catch (e) {
+        console.warn("Erro ao salvar lembrar-me:", e);
+      }
+    }
+
+    function ensureBaseCoins() {
+      try {
+        const raw = localStorage.getItem(KEYS.COINS);
+        if (raw === null) {
+          localStorage.setItem(KEYS.COINS, JSON.stringify(1000));
+        }
+      } catch (e) {
+        console.warn("Erro ao inicializar coins:", e);
+      }
+    }
+
+    // ====== TOGGLE SENHA ======
+    document.getElementById("togglePassword").addEventListener("click", () => {
+      const isPassword = passEl.type === "password";
+      passEl.type = isPassword ? "text" : "password";
+    });
+
+    // ====== SUBMIT LOGIN ======
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setFeedback("");
+
+      const email = emailEl.value.trim();
+      const senha = passEl.value;
+
+      if (!email || !senha) {
         setFeedback("Preencha e-mail e senha.");
         return;
       }
 
-      // Aqui você poderia plugar o Firebase Auth depois.
-      const user = {
-        email,
-        loginAt: new Date().toISOString()
-      };
-      localStorage.setItem("dc_current_user", JSON.stringify(user));
-      setFeedback("");
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        setFeedback("Informe um e-mail válido.");
+        emailEl.focus();
+        return;
+      }
 
-      window.location.href = REDIRECT_AFTER_LOGIN;
+      setLoading(true);
+
+      try {
+        // delayzinho só pra parecer requisição real
+        await new Promise((r) => setTimeout(r, 350));
+
+        // login de teste: apenas um usuário
+        if (email === TEST_EMAIL && senha === TEST_PASSWORD) {
+          // salva email do jogador para o hub
+          try {
+            localStorage.setItem(KEYS.EMAIL, email);
+          } catch (e) {
+            console.warn("Não foi possível salvar e-mail do usuário:", e);
+          }
+
+          // lembrar de mim
+          persistRememberMe(email);
+
+          // garante que coins exista
+          ensureBaseCoins();
+
+          // redireciona
+          window.location.href = REDIRECT_AFTER_LOGIN;
+        } else {
+          setFeedback("Login inválido. Use teste@teste.com / 1234 (teste).");
+        }
+      } catch (err) {
+        console.error("Erro no login:", err);
+        setFeedback("Erro ao tentar entrar. Tente novamente.");
+      } finally {
+        setLoading(false);
+      }
     });
 
-    document.getElementById("forgotPassword").addEventListener("click", (e) => {
-      e.preventDefault();
-      setFeedback("Em breve: recuperação de senha (pode ser implementada com Firebase).");
+    // “Esqueci a senha” – placeholder
+    document.getElementById("forgotPassword").addEventListener("click", () => {
+      setFeedback("Recuperação de senha ainda não está implementada (modo demo).");
     });
 
+    // limpar feedback ao digitar
     emailEl.addEventListener("input", () => setFeedback(""));
     passEl.addEventListener("input", () => setFeedback(""));
+
+    // inicialização
+    initRememberMeUI();
   </script>
 </body>
 </html>

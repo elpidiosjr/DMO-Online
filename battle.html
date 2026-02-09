@@ -1,371 +1,742 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Batalha Digimon</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Batalha Digimon</title>
 
-<style>
-body{
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
-  background:#071022;
-  color:#fff;
-  text-align:center;
-  padding:20px;
-}
+  <style>
+    :root{
+      --bg: #020617;
+      --card: #020617;
+      --accent: #38bdf8;
+      --accent-strong: #2563eb;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --danger: #f97373;
+      --success: #4ade80;
+    }
 
-.box{
-  max-width:650px;
-  margin:18px auto;
-  background:rgba(255,255,255,.05);
-  padding:16px;
-  border-radius:12px;
-}
+    *{box-sizing:border-box;}
 
-img{
-  width:110px;
-  height:110px;
-  background:#fff;
-  border-radius:10px;
-  padding:8px;
-}
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto;
+      background:radial-gradient(circle at top,#111827 0,#020617 55%,#000 100%);
+      color:#fff;
+      text-align:center;
+      padding:24px 18px 32px;
+      min-height:100vh;
+    }
 
-.name{font-weight:700}
-.muted{color:#bbb}
+    a.back-link{
+      color:#e5e7eb;
+      text-decoration:none;
+      font-size:.9rem;
+      opacity:.9;
+    }
 
-.hpbar,.mpbar{
-  height:14px;
-  border-radius:10px;
-  overflow:hidden;
-  background:#222;
-  margin-top:6px;
-}
+    h1{
+      margin:10px 0 8px;
+      font-size:1.7rem;
+    }
 
-.hpfill,.mpfill{
-  height:100%;
-  width:100%;
-  transition:width .4s ease-in-out;
-}
+    #status{
+      margin:0 0 18px;
+      font-size:.95rem;
+      color:var(--muted);
+    }
 
-.hpfill{ background:#22c55e; }
-.mpfill{ background:#3b82f6; }
+    #content{
+      max-width:900px;
+      margin:0 auto 16px;
+    }
 
-button{
-  padding:10px 16px;
-  border-radius:8px;
-  border:none;
-  cursor:pointer;
-  font-weight:700;
-}
+    .battle-layout{
+      display:flex;
+      flex-wrap:wrap;
+      gap:16px;
+      justify-content:center;
+    }
 
-button:disabled{
-  opacity:.5;
-}
+    .box{
+      background:radial-gradient(circle at top,#0f172a,#020617);
+      border-radius:16px;
+      padding:14px 16px 16px;
+      min-width:260px;
+      max-width:330px;
+      border:1px solid rgba(30,64,175,.9);
+      box-shadow:0 16px 40px rgba(0,0,0,.85);
+    }
 
-#actions{margin-top:18px}
+    .box h2{
+      margin:0 0 6px;
+      font-size:1.1rem;
+    }
 
-/* PAINEL DE LOG */
-#logPanel{
-  max-width:650px;
-  margin:16px auto;
-  text-align:left;
-  background:rgba(0,0,0,.25);
-  padding:12px;
-  border-radius:10px;
-  font-size:.95rem;
-  height:170px;
-  overflow-y:auto;
-}
+    .name{
+      font-weight:700;
+      margin-top:6px;
+      margin-bottom:2px;
+      font-size:1rem;
+    }
 
-.logPlayer{color:#38bdf8;}
-.logEnemy{color:#f87171;}
-.logSys{color:#c084fc;}
-.logCrit{color:#facc15;font-weight:700;}
-.logMiss{color:#9ca3af;font-style:italic;}
-</style>
+    .muted{
+      font-size:.8rem;
+      color:var(--muted);
+    }
+
+    .box img{
+      width:120px;
+      height:120px;
+      object-fit:contain;
+      background:#f9fafb;
+      border-radius:12px;
+      padding:8px;
+      border:1px solid rgba(15,23,42,.9);
+      margin-top:4px;
+    }
+
+    .hpbar,.mpbar{
+      width:100%;
+      height:10px;
+      border-radius:999px;
+      background:#020617;
+      overflow:hidden;
+      margin:8px 0 2px;
+      border:1px solid rgba(15,23,42,.9);
+    }
+
+    .hpfill{
+      height:100%;
+      width:100%;
+      background:linear-gradient(90deg,#dc2626,#f97316);
+      transition:width .25s ease;
+    }
+
+    .mpfill{
+      height:100%;
+      width:100%;
+      background:linear-gradient(90deg,#38bdf8,#6366f1);
+      transition:width .25s ease;
+    }
+
+    .hp-label, .mp-label{
+      font-size:.75rem;
+      color:var(--muted);
+    }
+
+    #actions{
+      margin-top:18px;
+      text-align:center;
+    }
+
+    #actions button{
+      border:none;
+      border-radius:999px;
+      padding:9px 14px;
+      font-size:.9rem;
+      margin:0 6px 4px;
+      cursor:pointer;
+      font-weight:600;
+      color:#fff;
+      box-shadow:0 10px 24px rgba(37,99,235,.55);
+    }
+
+    #atkBtn{ background:#3b82f6; }
+    #espBtn{ background:#a855f7; }
+    #swapBtn{ background:#0f766e; }
+
+    #atkBtn:disabled,
+    #espBtn:disabled,
+    #swapBtn:disabled{
+      opacity:.5;
+      cursor:not-allowed;
+      box-shadow:none;
+    }
+
+    /* ITENS */
+    #itemsBar{
+      margin-top:8px;
+    }
+
+    #itemsBar button{
+      border:none;
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:.8rem;
+      margin:4px 4px 0;
+      cursor:pointer;
+      background:#0f766e;
+      color:#ecfdf5;
+      box-shadow:0 8px 20px rgba(15,118,110,.6);
+    }
+
+    #itemsBar button:disabled{
+      opacity:.5;
+      cursor:not-allowed;
+      box-shadow:none;
+    }
+
+    /* LOG */
+    #logPanel{
+      max-width:650px;
+      margin:18px auto 0;
+      text-align:left;
+      background:rgba(15,23,42,.9);
+      padding:12px;
+      border-radius:14px;
+      font-size:.9rem;
+      height:190px;
+      overflow-y:auto;
+      border:1px solid rgba(55,65,81,.9);
+      box-shadow:0 12px 28px rgba(0,0,0,.85);
+    }
+
+    #logPanel div{
+      margin-bottom:4px;
+    }
+
+    .logSys{color:var(--muted);}
+    .logPlayer{color:#bae6fd;}
+    .logEnemy{color:#fecaca;}
+    .logCrit{color:#facc15;}
+
+    @media(max-width:640px){
+      #logPanel{
+        height:210px;
+      }
+    }
+  </style>
 </head>
-
 <body>
 
-<a href="account.html" style="color:#fff;text-decoration:none">← Voltar</a>
+  <a href="account.html" class="back-link">← Voltar</a>
 
-<h1>Batalha Digimon</h1>
+  <h1>Batalha Digimon</h1>
+  <p id="status">Carregando...</p>
 
-<div id="content">Carregando...</div>
+  <div id="content"></div>
 
-<div id="logPanel">⏳ Iniciando batalha...</div>
+  <div id="logPanel">⏳ Iniciando batalha...</div>
 
-<audio id="audioWin" src="sounds/win.mp3" preload="auto"></audio>
-<audio id="audioLose" src="sounds/lose.mp3" preload="auto"></audio>
+  <audio id="audioWin" src="sounds/win.mp3" preload="auto"></audio>
+  <audio id="audioLose" src="sounds/lose.mp3" preload="auto"></audio>
 
-<script>
-const API_URL = 'https://digimon-api.vercel.app/api/digimon';
+  <script>
+    const API_URL = 'https://digimon-api.vercel.app/api/digimon';
+    const MISS_CHANCE = 0.1;
+    const CRIT_CHANCE = 0.15;
 
-function getStats(){
-  try{return JSON.parse(localStorage.getItem('digimon_stats_v1'))||{}}
-  catch{return{}}
-}
-function saveStats(obj){
-  localStorage.setItem('digimon_stats_v1', JSON.stringify(obj));
-}
+    const REWARD_COINS = 100;             // recompensa por vitória
+    const STORAGE_COINS = 'dc_coins_v1';
+    const STORAGE_ITEMS = 'dc_items_v1';
 
-let mine, enemy;
-let myHP=100, enemyHP=100;
-let myMP=100;
-let enemyMP=100;
-let turn="player";
+    let teamData = [];      // [{name, dig, stats, hp, mp}]
+    let currentSlot = 0;    // 0 = ativo, 1 = reserva
+    let myHP = 100, myMP = 100;
+    let enemyHP = 100, enemyMP = 100;
+    let enemy, enemyStats, myDig, mineStats;
+    let turn = "player";
+    let atkBuff = 0;        // buff temporário de ataque (item)
 
-const MISS_CHANCE = 0.10;
-const CRIT_CHANCE = 0.15;
+    const winSound  = document.getElementById("audioWin");
+    const loseSound = document.getElementById("audioLose");
 
-/* ===== LOG ===== */
+    /* ========= STORAGE ========= */
 
-function addLog(text,css="logSys"){
-  const box = document.getElementById("logPanel");
-  box.innerHTML += `<div class="${css}">• ${text}</div>`;
-  box.scrollTop = box.scrollHeight;
-}
-
-async function start(){
-
-  const q = new URLSearchParams(location.search);
-  const name = q.get("name");
-
-  const map = getStats();
-  mine = map[name];
-
-  const res = await fetch(API_URL);
-  const api = await res.json();
-
-  const myDig = api.find(d=>d.name.toLowerCase()===name.toLowerCase());
-  enemy = api[Math.floor(Math.random()*api.length)];
-
-  addLog(`🐾 ${name} entrou na batalha!`,"logPlayer");
-  addLog(`😈 ${enemy.name} apareceu!`,"logEnemy");
-
-  document.getElementById("content").innerHTML = `
-  
-    <div class="box">
-      <h2>Seu Digimon</h2>
-      <img src="${myDig.img}">
-      <div class="name">${name}</div>
-      <div class="muted">ATK ${mine.atk} • DEF ${mine.def} • ESP ${mine.esp}</div>
-
-      <div class="hpbar"><div id="myhp" class="hpfill"></div></div>
-      <small>HP</small>
-
-      <div class="mpbar"><div id="mymp" class="mpfill"></div></div>
-      <small>MP</small>
-
-    </div>
-
-    <h2>⚡ VS ⚡</h2>
-
-    <div class="box">
-      <h2>Oponente</h2>
-      <img src="${enemy.img}">
-      <div class="name">${enemy.name}</div>
-
-      <div class="hpbar"><div id="enemyhp" class="hpfill"></div></div>
-      <small>HP</small>
-
-      <div class="mpbar"><div id="enemymp" class="mpfill"></div></div>
-      <small>MP</small>
-
-    </div>
-
-    <div id="actions">
-      <button id="atkBtn" style="background:#3b82f6">⚔️ Atacar</button>
-      <button id="espBtn" style="background:#a855f7">✨ Especial (50MP)</button>
-    </div>
-  `;
-
-  document.getElementById("atkBtn").onclick = attack;
-  document.getElementById("espBtn").onclick = special;
-
-  updateBars();
-  updateMana();
-
-  addLog("Seu turno começou","logSys");
-}
-
-function updateBars(){
-  document.getElementById("myhp").style.width = myHP+"%";
-  document.getElementById("enemyhp").style.width = enemyHP+"%";
-}
-
-function updateMana(){
-  document.getElementById("mymp").style.width = myMP+"%";
-  document.getElementById("enemymp").style.width = enemyMP+"%";
-
-  document.getElementById("espBtn").disabled = myMP < 50;
-}
-
-function disable(){
-  document.getElementById("atkBtn").disabled = true;
-  document.getElementById("espBtn").disabled = true;
-}
-
-function enable(){
-  document.getElementById("atkBtn").disabled = false;
-  updateMana();
-}
-
-function rollDamage(min,max){
-  return Math.floor(Math.random()*max)+min;
-}
-function rollMiss(){return Math.random() < MISS_CHANCE;}
-function rollCrit(){return Math.random() < CRIT_CHANCE;}
-
-/* ===== PLAYER ATTACK ===== */
-
-function attack(){
-  if(turn !== "player") return;
-
-  if(rollMiss()){
-    addLog("Você errou o ataque!","logMiss");
-  } else {
-
-    let dmg = rollDamage(5,15);
-
-    if(rollCrit()){
-      dmg*=2;
-      addLog(`🔥 CRÍTICO! Você causou ${dmg} de dano!`,"logCrit");
-    } else {
-      addLog(`⚔️ Você causou ${dmg} de dano`,"logPlayer");
+    function getJson(key, fallback){
+      try{
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      }catch(e){
+        console.warn('Erro lendo localStorage', e);
+        return fallback;
+      }
     }
 
-    enemyHP -= dmg;
-  }
-
-  if(enemyHP<0) enemyHP=0;
-
-  updateBars();
-  turn="enemy";
-
-  checkEnd();
-  if(enemyHP>0) setTimeout(enemyTurn,900);
-}
-
-/* ===== SPECIAL ===== */
-
-function special(){
-  if(turn !== "player") return;
-  if(myMP < 50) return;
-
-  myMP -= 50;
-  updateMana();
-
-  if(rollMiss()){
-    addLog("✨ Seu especial errou!","logMiss");
-  } else {
-
-    let dmg = rollDamage(10,30);
-
-    if(rollCrit()){
-      dmg*=2;
-      addLog(`💥 CRÍTICO ESPECIAL! ${dmg} de dano!`,"logCrit");
-    } else {
-      addLog(`✨ Especial causou ${dmg} de dano!`,"logPlayer");
+    function setJson(key,value){
+      try{
+        localStorage.setItem(key, JSON.stringify(value));
+      }catch(e){
+        console.warn('Erro salvando localStorage', e);
+      }
     }
 
-    enemyHP -= dmg;
-  }
+    function getStatsMap(){
+      return getJson('digimon_stats_v1', {});
+    }
 
-  if(enemyHP<0) enemyHP=0;
+    function getBattleTeam(){
+      return getJson('dc_battle_team_v1', []);
+    }
 
-  updateBars();
-  turn="enemy";
+    // Itens (mesmo padrão da loja)
+    function getItems(){
+      return getJson(STORAGE_ITEMS, []);
+    }
 
-  checkEnd();
-  if(enemyHP>0) setTimeout(enemyTurn,900);
-}
+    function setItems(list){
+      setJson(STORAGE_ITEMS, list);
+    }
 
-/* ===== ENEMY AI ===== */
+    function consumeItem(itemId){
+      const items = getItems();
+      const idx = items.findIndex(i => i.id === itemId);
+      if(idx === -1 || items[idx].qty <= 0) return false;
+      items[idx].qty -= 1;
+      if(items[idx].qty <= 0) items.splice(idx, 1);
+      setItems(items);
+      return true;
+    }
 
-function enemyTurn(){
+    function getItemQty(itemId){
+      const items = getItems();
+      const it = items.find(i => i.id === itemId);
+      return it ? (it.qty || 0) : 0;
+    }
 
-  addLog(`😈 Turno do ${enemy.name}`,"logEnemy");
+    // Coins (mesmo padrão de home/shop)
+    function getCoins(){
+      let coins = getJson(STORAGE_COINS, null);
+      if(coins === null){
+        coins = 1000; // fallback inicial
+        setJson(STORAGE_COINS, coins);
+      }
+      return coins;
+    }
 
-  const useSpecial = enemyMP>=50 && Math.random()<0.4;
+    function setCoins(v){
+      setJson(STORAGE_COINS, v);
+    }
 
-  if(useSpecial){
-    enemyMP -= 50;
+    function addCoins(delta){
+      const current = getCoins();
+      const next = Math.max(0, current + delta);
+      setCoins(next);
+      return next;
+    }
 
-    if(rollMiss()){
-      addLog(`${enemy.name} ERROU o especial!`,"logMiss");
-    } else {
+    /* ========= LOG / UI ========= */
 
-      let dmg = rollDamage(10,28);
+    function addLog(text, css = "logSys"){
+      const box = document.getElementById("logPanel");
+      box.innerHTML += `<div class="${css}">• ${text}</div>`;
+      box.scrollTop = box.scrollHeight;
+    }
 
-      if(rollCrit()){
-        dmg*=2;
-        addLog(`🔥 CRÍTICO ESPECIAL de ${enemy.name}! ${dmg} dano!`,"logCrit");
-      } else {
-        addLog(`${enemy.name} usou especial causando ${dmg} dano`,"logEnemy");
+    function updateBars(){
+      const myhp    = document.getElementById("myhp");
+      const enemyhp = document.getElementById("enemyhp");
+      if(myhp)    myhp.style.width    = Math.max(0,myHP) + "%";
+      if(enemyhp) enemyhp.style.width = Math.max(0,enemyHP) + "%";
+    }
+
+    function updateMana(){
+      const mymp    = document.getElementById("mymp");
+      const enemymp = document.getElementById("enemymp");
+      if(mymp)    mymp.style.width    = Math.max(0,myMP) + "%";
+      if(enemymp) enemymp.style.width = Math.max(0,enemyMP) + "%";
+
+      const espBtn = document.getElementById("espBtn");
+      if(espBtn) espBtn.disabled = myMP < 50 || turn !== "player";
+    }
+
+    function disableButtons(){
+      const ids = ["atkBtn","espBtn","swapBtn"];
+      ids.forEach(id=>{
+        const b = document.getElementById(id);
+        if(b) b.disabled = true;
+      });
+    }
+
+    function enableButtons(){
+      const atk = document.getElementById("atkBtn");
+      if(atk) atk.disabled = false;
+      const swap = document.getElementById("swapBtn");
+      if(swap) swap.disabled = teamData.length < 2 || myHP <= 0;
+      updateMana();
+    }
+
+    function renderReserveInfo(){
+      const el = document.getElementById("reserveInfo");
+      if(!el) return;
+      if(teamData.length < 2){
+        el.textContent = "Sem Digimon reserva.";
+        return;
+      }
+      const otherIndex = currentSlot === 0 ? 1 : 0;
+      const other = teamData[otherIndex];
+      el.textContent = `Reserva: ${other.dig.name} (HP ${other.hp}%)`;
+    }
+
+    function renderItemsBar(){
+      const bar = document.getElementById("itemsBar");
+      if(!bar) return;
+
+      const metaItems = [
+        { id:'potion_small',  label:'Poção +20HP', type:'heal', amount:20 },
+        { id:'potion_medium', label:'Poção +50HP', type:'heal', amount:50 },
+        { id:'atk_boost',     label:'Booster ATK +10', type:'buff', amount:10 }
+      ];
+
+      const usable = metaItems
+        .map(m => {
+          const qty = getItemQty(m.id);
+          if(qty <= 0) return null;
+          return {...m, qty};
+        })
+        .filter(Boolean);
+
+      if(!usable.length){
+        bar.innerHTML = '<span style="font-size:.8rem;color:#9ca3af;">Nenhum item disponível.</span>';
+        return;
       }
 
-      myHP -= dmg;
+      bar.innerHTML = usable.map(u => `
+        <button class="itemBtn" data-id="${u.id}" data-type="${u.type}" data-amount="${u.amount}">
+          ${u.label} (${u.qty})
+        </button>
+      `).join("");
+
+      bar.querySelectorAll('.itemBtn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          useItem(
+            btn.dataset.id,
+            btn.dataset.type,
+            parseInt(btn.dataset.amount,10)
+          );
+        });
+      });
     }
 
-  } else {
+    /* ========= MECÂNICA ========= */
 
-    if(rollMiss()){
-      addLog(`${enemy.name} errou o ataque!`,"logMiss");
-    } else {
+    function rollDamage(min, max){
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    function rollMiss(){ return Math.random() < MISS_CHANCE; }
+    function rollCrit(){ return Math.random() < CRIT_CHANCE; }
 
-      let dmg = rollDamage(6,18);
+    function checkEnd(){
+      if(enemyHP <= 0){
+        enemyHP = 0;
+        updateBars();
+        addLog("🏆 Vitória!","logPlayer");
 
-      if(rollCrit()){
-        dmg*=2;
-        addLog(`💥 CRÍTICO de ${enemy.name}! ${dmg} dano!`,"logCrit");
-      } else {
-        addLog(`${enemy.name} causou ${dmg} de dano`,"logEnemy");
+        // recompensa em coins
+        const total = addCoins(REWARD_COINS);
+        addLog(`💰 Você ganhou ${REWARD_COINS} coins! (Total: ${total})`,"logPlayer");
+
+        winSound && winSound.play();
+        disableButtons();
+        document.getElementById("status").textContent = `Você venceu! +${REWARD_COINS} coins.`;
+        return true;
       }
 
-      myHP -= dmg;
+      // se Digimon ativo morreu mas existe reserva vivo, troca automático
+      if(myHP <= 0 && teamData.length > 1){
+        const otherIndex = currentSlot === 0 ? 1 : 0;
+        if(teamData[otherIndex].hp > 0){
+          addLog(`${myDig.name} caiu! ${teamData[otherIndex].dig.name} entra em campo!`,"logSys");
+          switchToSlot(otherIndex, true);
+          return false;
+        }
+      }
+      if(myHP <= 0){
+        myHP = 0;
+        updateBars();
+        addLog("💀 Derrota, não desista!","logEnemy");
+        loseSound && loseSound.play();
+        disableButtons();
+        document.getElementById("status").textContent = "Você foi derrotado.";
+        return true;
+      }
+      return false;
     }
-  }
 
-  if(myHP<0) myHP=0;
+    function syncActiveToTeam(){
+      if(!teamData.length) return;
+      teamData[currentSlot].hp = myHP;
+      teamData[currentSlot].mp = myMP;
+    }
 
-  updateBars();
-  updateMana();
+    function playerAttack(isSpecial){
+      if(turn !== "player") return;
+      if(isSpecial && myMP < 50){
+        addLog("MP insuficiente para o especial.","logSys");
+        return;
+      }
 
-  turn="player";
+      disableButtons();
 
-  checkEnd();
+      if(rollMiss()){
+        addLog("Você errou o ataque!","logEnemy");
+      }else{
+        const base = isSpecial ? (mineStats.esp || 30) : (mineStats.atk || 25);
+        const def  = enemyStats.def || 15;
+        const baseWithBuff = base + atkBuff;
+        let dmg = rollDamage(
+          8,
+          16 + Math.round(baseWithBuff * 0.4) - Math.round(def * 0.2)
+        );
 
-  if(myHP>0){
-    addLog("Seu turno começou","logSys");
-    enable();
-  }
-}
+        if(rollCrit()){
+          dmg = Math.round(dmg * 1.6);
+          addLog(`🔥 CRÍTICO! Você causou ${dmg} de dano!`,"logCrit");
+        }else{
+          addLog(`⚔️ Você causou ${dmg} de dano.`,"logPlayer");
+        }
+        enemyHP -= dmg;
+      }
 
-/* ===== END ===== */
+      // consome buff após o ataque
+      atkBuff = 0;
 
-function checkEnd(){
+      if(isSpecial){
+        myMP -= 50;
+        if(myMP < 0) myMP = 0;
+      }
 
-  const winSound=document.getElementById("audioWin");
-  const loseSound=document.getElementById("audioLose");
+      updateBars();
+      updateMana();
+      syncActiveToTeam();
 
-  if(enemyHP<=0){
+      if(checkEnd()) return;
 
-    addLog("🏆 Vitória!","logPlayer");
-    winSound.play();
-    disable();
-  }
+      turn = "enemy";
+      setTimeout(enemyTurn, 900);
+    }
 
-  if(myHP<=0){
+    function enemyTurn(){
+      if(turn !== "enemy") return;
 
-    addLog("💀 Derrota, não desista!","logEnemy");
-    loseSound.play();
-    disable();
-  }
-}
+      if(rollMiss()){
+        addLog(`${enemy.name} errou o ataque!`,"logPlayer");
+      }else{
+        const base = enemyStats.atk || 28;
+        const def  = mineStats.def || 18;
+        let dmg = rollDamage(
+          6,
+          14 + Math.round(base * 0.4) - Math.round(def * 0.2)
+        );
 
-start();
-</script>
+        if(rollCrit()){
+          dmg = Math.round(dmg * 1.5);
+          addLog(`💥 CRÍTICO de ${enemy.name}! ${dmg} de dano!`,"logCrit");
+        }else{
+          addLog(`${enemy.name} causou ${dmg} de dano.`,"logEnemy");
+        }
+        myHP -= dmg;
+      }
 
+      updateBars();
+      syncActiveToTeam();
+
+      if(checkEnd()) return;
+
+      turn = "player";
+      addLog("Seu turno começou.","logSys");
+      enableButtons();
+    }
+
+    function switchToSlot(slotIndex, auto = false){
+      if(slotIndex === currentSlot) return;
+      if(teamData.length <= slotIndex) return;
+      const target = teamData[slotIndex];
+      if(target.hp <= 0){
+        addLog("Você não pode trocar para um Digimon nocauteado.","logSys");
+        return;
+      }
+
+      currentSlot = slotIndex;
+      myHP = target.hp;
+      myMP = target.mp;
+      myDig = target.dig;
+      mineStats = target.stats;
+
+      // atualiza UI
+      const img  = document.getElementById("myImg");
+      const name = document.getElementById("myName");
+      const st   = document.getElementById("myStats");
+      if(img)  img.src = myDig.img;
+      if(name) name.textContent = myDig.name;
+      if(st)   st.textContent  = `ATK ${mineStats.atk} • DEF ${mineStats.def} • ESP ${mineStats.esp}`;
+
+      updateBars();
+      updateMana();
+      renderReserveInfo();
+
+      if(!auto){
+        addLog(`Você trocou para ${myDig.name}.`,"logPlayer");
+      }
+    }
+
+    function handleSwap(){
+      if(turn !== "player"){
+        addLog("Você só pode trocar no seu turno.","logSys");
+        return;
+      }
+      if(teamData.length < 2){
+        addLog("Você não tem Digimon reserva para trocar.","logSys");
+        return;
+      }
+      const otherIndex = currentSlot === 0 ? 1 : 0;
+      switchToSlot(otherIndex, false);
+    }
+
+    function useItem(id,type,amount){
+      if(turn !== "player"){
+        addLog("Você só pode usar itens no seu turno.","logSys");
+        return;
+      }
+      if(!consumeItem(id)){
+        addLog("Você não possui mais esse item.","logSys");
+        renderItemsBar();
+        return;
+      }
+
+      if(type === "heal"){
+        const before = myHP;
+        myHP = Math.min(100, myHP + amount);
+        syncActiveToTeam();
+        updateBars();
+        addLog(`💊 Item usado: +${amount} HP (de ${before} para ${myHP}).`,"logPlayer");
+      }else if(type === "buff"){
+        atkBuff += amount;
+        addLog(`💥 Booster de ataque usado! +${amount} ATK no próximo ataque.`,"logPlayer");
+      }
+
+      renderItemsBar();
+    }
+
+    /* ========= START ========= */
+
+    async function start(){
+      const statusEl  = document.getElementById("status");
+      const contentEl = document.getElementById("content");
+
+      const battleTeam = getBattleTeam();
+      let names = battleTeam && battleTeam.length
+        ? battleTeam.map(d => d.name)
+        : [];
+
+      // fallback pra ?name= se não tiver time salvo
+      if(!names.length){
+        const q = new URLSearchParams(location.search);
+        const singleName = q.get("name");
+        if(singleName) names = [singleName];
+      }
+
+      if(!names.length){
+        statusEl.textContent = "Nenhum Digimon selecionado para batalha.";
+        contentEl.innerHTML = `
+          <p style="max-width:520px;margin:24px auto 0;font-size:.95rem;">
+            Volte para <strong>Minha Conta</strong> e selecione pelo menos 1 Digimon no time de batalha.
+          </p>
+        `;
+        addLog("Nenhum Digimon encontrado no time. Configure o time na tela Minha Conta.","logSys");
+        return;
+      }
+
+      statusEl.textContent = "Carregando dados da batalha...";
+
+      const statsMap = getStatsMap();
+
+      let api;
+      try{
+        const res = await fetch(API_URL);
+        api = await res.json();
+      }catch(e){
+        console.error(e);
+        statusEl.textContent = "Erro ao carregar Digimons da API.";
+        addLog("Não foi possível carregar os dados da API de Digimon.","logEnemy");
+        return;
+      }
+
+      // monta dados do time (até 2)
+      teamData = names.slice(0,2).map(n => {
+        const dig = api.find(d => d.name.toLowerCase() === n.toLowerCase()) || api[0];
+        const stats = statsMap[n] || { atk: 25, def: 15, esp: 20 };
+        return { name:n, dig, stats, hp:100, mp:100 };
+      });
+
+      if(!teamData.length){
+        statusEl.textContent = "Time inválido para batalha.";
+        return;
+      }
+
+      // inimigo aleatório
+      enemy = api[Math.floor(Math.random() * api.length)];
+      enemyStats = statsMap[enemy.name] || { atk: 28, def: 18, esp: 18 };
+
+      currentSlot = 0;
+      myDig = teamData[0].dig;
+      mineStats = teamData[0].stats;
+      myHP = teamData[0].hp;
+      myMP = teamData[0].mp;
+      enemyHP = 100;
+      enemyMP = 100;
+
+      statusEl.textContent = "Batalha iniciada!";
+
+      contentEl.innerHTML = `
+        <div class="battle-layout">
+          <div class="box">
+            <h2>Seu Digimon</h2>
+            <img id="myImg" src="${myDig.img}" alt="${myDig.name}">
+            <div class="name" id="myName">${myDig.name}</div>
+            <div class="muted" id="myStats">
+              ATK ${mineStats.atk} • DEF ${mineStats.def} • ESP ${mineStats.esp}
+            </div>
+            <div class="muted" id="reserveInfo"></div>
+
+            <div class="hpbar"><div id="myhp" class="hpfill"></div></div>
+            <div class="hp-label">HP</div>
+
+            <div class="mpbar"><div id="mymp" class="mpfill"></div></div>
+            <div class="mp-label">MP</div>
+          </div>
+
+          <div class="box">
+            <h2>Oponente</h2>
+            <img src="${enemy.img}" alt="${enemy.name}">
+            <div class="name">${enemy.name}</div>
+            <div class="muted">
+              ATK ${enemyStats.atk} • DEF ${enemyStats.def} • ESP ${enemyStats.esp}
+            </div>
+
+            <div class="hpbar"><div id="enemyhp" class="hpfill"></div></div>
+            <div class="hp-label">HP</div>
+
+            <div class="mpbar"><div id="enemymp" class="mpfill"></div></div>
+            <div class="mp-label">MP</div>
+          </div>
+        </div>
+
+        <div id="actions">
+          <button id="atkBtn">⚔️ Atacar</button>
+          <button id="espBtn">✨ Especial (50MP)</button>
+          <button id="swapBtn">🔁 Trocar Digimon</button>
+          <div id="itemsBar"></div>
+        </div>
+      `;
+
+      document.getElementById("atkBtn").onclick = () => playerAttack(false);
+      document.getElementById("espBtn").onclick = () => playerAttack(true);
+      document.getElementById("swapBtn").onclick = handleSwap;
+
+      updateBars();
+      updateMana();
+      renderReserveInfo();
+      renderItemsBar();
+
+      addLog(`🐾 ${myDig.name} entrou na batalha!`,"logPlayer");
+      addLog(`😈 ${enemy.name} apareceu!`,"logEnemy");
+      addLog("Seu turno começou.","logSys");
+      enableButtons();
+    }
+
+    start();
+  </script>
 </body>
 </html>
