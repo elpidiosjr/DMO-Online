@@ -227,17 +227,26 @@
     const MISS_CHANCE = 0.1;
     const CRIT_CHANCE = 0.15;
 
-    const REWARD_COINS = 100;             // recompensa por vitória
+    const REWARD_COINS = 100;
     const STORAGE_COINS = 'dc_coins_v1';
     const STORAGE_ITEMS = 'dc_items_v1';
 
+    // time do jogador
     let teamData = [];      // [{name, dig, stats, hp, mp}]
     let currentSlot = 0;    // 0 = ativo, 1 = reserva
+
+    // time inimigo
+    let enemyTeam = [];     // [{dig, stats, hp, mp}]
+    let enemySlot = 0;
+
     let myHP = 100, myMP = 100;
     let enemyHP = 100, enemyMP = 100;
-    let enemy, enemyStats, myDig, mineStats;
+
+    let myDig, mineStats;
+    let enemyDig, enemyStats;
+
     let turn = "player";
-    let atkBuff = 0;        // buff temporário de ataque (item)
+    let atkBuff = 0;
 
     const winSound  = document.getElementById("audioWin");
     const loseSound = document.getElementById("audioLose");
@@ -270,15 +279,13 @@
       return getJson('dc_battle_team_v1', []);
     }
 
-    // Itens (mesmo padrão da loja)
+    // itens
     function getItems(){
       return getJson(STORAGE_ITEMS, []);
     }
-
     function setItems(list){
       setJson(STORAGE_ITEMS, list);
     }
-
     function consumeItem(itemId){
       const items = getItems();
       const idx = items.findIndex(i => i.id === itemId);
@@ -288,27 +295,24 @@
       setItems(items);
       return true;
     }
-
     function getItemQty(itemId){
       const items = getItems();
       const it = items.find(i => i.id === itemId);
       return it ? (it.qty || 0) : 0;
     }
 
-    // Coins (mesmo padrão de home/shop)
+    // coins
     function getCoins(){
       let coins = getJson(STORAGE_COINS, null);
       if(coins === null){
-        coins = 1000; // fallback inicial
+        coins = 1000;
         setJson(STORAGE_COINS, coins);
       }
       return coins;
     }
-
     function setCoins(v){
       setJson(STORAGE_COINS, v);
     }
-
     function addCoins(delta){
       const current = getCoins();
       const next = Math.max(0, current + delta);
@@ -342,8 +346,7 @@
     }
 
     function disableButtons(){
-      const ids = ["atkBtn","espBtn","swapBtn"];
-      ids.forEach(id=>{
+      ["atkBtn","espBtn","swapBtn"].forEach(id=>{
         const b = document.getElementById(id);
         if(b) b.disabled = true;
       });
@@ -366,6 +369,18 @@
       }
       const otherIndex = currentSlot === 0 ? 1 : 0;
       const other = teamData[otherIndex];
+      el.textContent = `Reserva: ${other.dig.name} (HP ${other.hp}%)`;
+    }
+
+    function renderEnemyReserveInfo(){
+      const el = document.getElementById("enemyReserveInfo");
+      if(!el) return;
+      if(enemyTeam.length < 2){
+        el.textContent = "Sem reserva.";
+        return;
+      }
+      const otherIndex = enemySlot === 0 ? 1 : 0;
+      const other = enemyTeam[otherIndex];
       el.textContent = `Reserva: ${other.dig.name} (HP ${other.hp}%)`;
     }
 
@@ -417,13 +432,65 @@
     function rollMiss(){ return Math.random() < MISS_CHANCE; }
     function rollCrit(){ return Math.random() < CRIT_CHANCE; }
 
+    function syncActiveToTeam(){
+      if(!teamData.length) return;
+      teamData[currentSlot].hp = myHP;
+      teamData[currentSlot].mp = myMP;
+    }
+
+    function syncEnemyActiveToTeam(){
+      if(!enemyTeam.length) return;
+      enemyTeam[enemySlot].hp = enemyHP;
+      enemyTeam[enemySlot].mp = enemyMP;
+    }
+
+    function switchEnemySlot(slotIndex, auto = false){
+      if(slotIndex === enemySlot) return;
+      if(enemyTeam.length <= slotIndex) return;
+      const target = enemyTeam[slotIndex];
+      if(target.hp <= 0) return;
+
+      enemySlot = slotIndex;
+      enemyHP = target.hp;
+      enemyMP = target.mp;
+      enemyDig = target.dig;
+      enemyStats = target.stats;
+
+      const img  = document.getElementById("enemyImg");
+      const name = document.getElementById("enemyName");
+      const st   = document.getElementById("enemyStats");
+      if(img)  img.src = enemyDig.img;
+      if(name) name.textContent = enemyDig.name;
+      if(st)   st.textContent  = `ATK ${enemyStats.atk} • DEF ${enemyStats.def} • ESP ${enemyStats.esp}`;
+
+      updateBars();
+      updateMana();
+      renderEnemyReserveInfo();
+
+      if(!auto){
+        addLog(`${enemyDig.name} entrou em campo!`,"logEnemy");
+      }
+    }
+
     function checkEnd(){
+      // inimigo cai
       if(enemyHP <= 0){
         enemyHP = 0;
         updateBars();
-        addLog("🏆 Vitória!","logPlayer");
+        syncEnemyActiveToTeam();
 
-        // recompensa em coins
+        // se tiver reserva viva, troca
+        if(enemyTeam.length > 1){
+          const otherIndex = enemySlot === 0 ? 1 : 0;
+          if(enemyTeam[otherIndex].hp > 0){
+            addLog(`${enemyDig.name} foi derrotado! ${enemyTeam[otherIndex].dig.name} entra em campo!`,"logEnemy");
+            switchEnemySlot(otherIndex,true);
+            return false;
+          }
+        }
+
+        // nenhum inimigo vivo -> vitória
+        addLog("🏆 Vitória!","logPlayer");
         const total = addCoins(REWARD_COINS);
         addLog(`💰 Você ganhou ${REWARD_COINS} coins! (Total: ${total})`,"logPlayer");
 
@@ -433,7 +500,7 @@
         return true;
       }
 
-      // se Digimon ativo morreu mas existe reserva vivo, troca automático
+      // seu Digimon cai, tenta reserva
       if(myHP <= 0 && teamData.length > 1){
         const otherIndex = currentSlot === 0 ? 1 : 0;
         if(teamData[otherIndex].hp > 0){
@@ -445,6 +512,7 @@
       if(myHP <= 0){
         myHP = 0;
         updateBars();
+        syncActiveToTeam();
         addLog("💀 Derrota, não desista!","logEnemy");
         loseSound && loseSound.play();
         disableButtons();
@@ -452,12 +520,6 @@
         return true;
       }
       return false;
-    }
-
-    function syncActiveToTeam(){
-      if(!teamData.length) return;
-      teamData[currentSlot].hp = myHP;
-      teamData[currentSlot].mp = myMP;
     }
 
     function playerAttack(isSpecial){
@@ -489,7 +551,6 @@
         enemyHP -= dmg;
       }
 
-      // consome buff após o ataque
       atkBuff = 0;
 
       if(isSpecial){
@@ -500,6 +561,7 @@
       updateBars();
       updateMana();
       syncActiveToTeam();
+      syncEnemyActiveToTeam();
 
       if(checkEnd()) return;
 
@@ -511,7 +573,7 @@
       if(turn !== "enemy") return;
 
       if(rollMiss()){
-        addLog(`${enemy.name} errou o ataque!`,"logPlayer");
+        addLog(`${enemyDig.name} errou o ataque!`,"logPlayer");
       }else{
         const base = enemyStats.atk || 28;
         const def  = mineStats.def || 18;
@@ -522,15 +584,16 @@
 
         if(rollCrit()){
           dmg = Math.round(dmg * 1.5);
-          addLog(`💥 CRÍTICO de ${enemy.name}! ${dmg} de dano!`,"logCrit");
+          addLog(`💥 CRÍTICO de ${enemyDig.name}! ${dmg} de dano!`,"logCrit");
         }else{
-          addLog(`${enemy.name} causou ${dmg} de dano.`,"logEnemy");
+          addLog(`${enemyDig.name} causou ${dmg} de dano.`,"logEnemy");
         }
         myHP -= dmg;
       }
 
       updateBars();
       syncActiveToTeam();
+      syncEnemyActiveToTeam();
 
       if(checkEnd()) return;
 
@@ -554,7 +617,6 @@
       myDig = target.dig;
       mineStats = target.stats;
 
-      // atualiza UI
       const img  = document.getElementById("myImg");
       const name = document.getElementById("myName");
       const st   = document.getElementById("myStats");
@@ -620,7 +682,7 @@
         ? battleTeam.map(d => d.name)
         : [];
 
-      // fallback pra ?name= se não tiver time salvo
+      // fallback ?name=
       if(!names.length){
         const q = new URLSearchParams(location.search);
         const singleName = q.get("name");
@@ -653,7 +715,7 @@
         return;
       }
 
-      // monta dados do time (até 2)
+      // time do jogador (até 2)
       teamData = names.slice(0,2).map(n => {
         const dig = api.find(d => d.name.toLowerCase() === n.toLowerCase()) || api[0];
         const stats = statsMap[n] || { atk: 25, def: 15, esp: 20 };
@@ -665,15 +727,48 @@
         return;
       }
 
-      // inimigo aleatório
-      enemy = api[Math.floor(Math.random() * api.length)];
-      enemyStats = statsMap[enemy.name] || { atk: 28, def: 18, esp: 18 };
+      // time inimigo (até 2, aleatório e diferente se possível)
+      const availableEnemies = api.filter(d => !names.includes(d.name));
+      function pickRandomDifferent(arr, count){
+        const copy = [...arr];
+        const picked = [];
+        while(copy.length && picked.length < count){
+          const idx = Math.floor(Math.random() * copy.length);
+          picked.push(copy.splice(idx,1)[0]);
+        }
+        return picked;
+      }
+      const chosenEnemies = pickRandomDifferent(
+        availableEnemies.length ? availableEnemies : api,
+        2
+      );
 
+      enemyTeam = chosenEnemies.map(dig => {
+        const stats = statsMap[dig.name] || { atk: 28, def: 18, esp: 18 };
+        return { dig, stats, hp:100, mp:100 };
+      });
+
+      if(!enemyTeam.length){
+        // fallback extremo
+        const dig = api[0];
+        enemyTeam = [{
+          dig,
+          stats: { atk: 28, def: 18, esp: 18 },
+          hp:100,
+          mp:100
+        }];
+      }
+
+      // inicializa estado
       currentSlot = 0;
       myDig = teamData[0].dig;
       mineStats = teamData[0].stats;
-      myHP = teamData[0].hp;
-      myMP = teamData[0].mp;
+      myHP = 100;
+      myMP = 100;
+
+      enemySlot = 0;
+      enemyDig = enemyTeam[0].dig;
+      enemyStats = enemyTeam[0].stats;
       enemyHP = 100;
       enemyMP = 100;
 
@@ -699,11 +794,12 @@
 
           <div class="box">
             <h2>Oponente</h2>
-            <img src="${enemy.img}" alt="${enemy.name}">
-            <div class="name">${enemy.name}</div>
-            <div class="muted">
+            <img id="enemyImg" src="${enemyDig.img}" alt="${enemyDig.name}">
+            <div class="name" id="enemyName">${enemyDig.name}</div>
+            <div class="muted" id="enemyStats">
               ATK ${enemyStats.atk} • DEF ${enemyStats.def} • ESP ${enemyStats.esp}
             </div>
+            <div class="muted" id="enemyReserveInfo"></div>
 
             <div class="hpbar"><div id="enemyhp" class="hpfill"></div></div>
             <div class="hp-label">HP</div>
@@ -728,10 +824,17 @@
       updateBars();
       updateMana();
       renderReserveInfo();
+      renderEnemyReserveInfo();
       renderItemsBar();
 
       addLog(`🐾 ${myDig.name} entrou na batalha!`,"logPlayer");
-      addLog(`😈 ${enemy.name} apareceu!`,"logEnemy");
+      if(teamData.length > 1){
+        addLog(`🔁 Reserva: ${teamData[1].dig.name}`,"logSys");
+      }
+      addLog(`😈 ${enemyDig.name} apareceu!`,"logEnemy");
+      if(enemyTeam.length > 1){
+        addLog(`🔁 Reserva inimiga: ${enemyTeam[1].dig.name}`,"logEnemy");
+      }
       addLog("Seu turno começou.","logSys");
       enableButtons();
     }
