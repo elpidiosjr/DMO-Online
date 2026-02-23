@@ -1,5 +1,3 @@
-
-
 const STORAGE_KEYS = {
   STATS:  'dc_digimon_stats_v1',   
   OWNED:  'dc_owned_digimons_v1',  
@@ -45,6 +43,30 @@ function addCoins(delta) {
   const next = Math.max(0, current + Number(delta || 0));
   setCoins(next);
   return next;
+}
+
+// 🔥 RECOMPENSA DE BATALHA
+function rewardBattleVictory(enemyTeam = []) {
+  let baseReward = 120;
+
+  // bônus por nível alto no time inimigo
+  enemyTeam.forEach(d => {
+    if (d.level === 'Ultimate') baseReward += 40;
+    if (d.level === 'Mega') baseReward += 80;
+  });
+
+  // chance de bônus aleatório
+  if (Math.random() < 0.25) {
+    baseReward += 50;
+  }
+
+  addCoins(baseReward);
+  return baseReward;
+}
+
+// utilitário
+function isUltimate(digimon) {
+  return digimon && digimon.level === 'Ultimate';
 }
 
 // ---------- STATS ----------
@@ -115,7 +137,6 @@ function addOwned(digimon) {
     gsSetJson(STORAGE_KEYS.OWNED, owned);
   }
 
-  // garante stats
   getStats(digimon);
 }
 
@@ -152,4 +173,4 @@ function setBattleTeam(team) {
 
 function clearBattleTeam() {
   gsSetJson(STORAGE_KEYS.BATTLE, []);
-}
+}   
