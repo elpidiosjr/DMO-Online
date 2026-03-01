@@ -27,10 +27,12 @@ function gsSetJson(key, value) {
 // ---------- COINS ----------
 function getCoins() {
   let coins = gsGetJson(STORAGE_KEYS.COINS, null);
+
   if (coins === null) {
-    coins = 1000; // coins iniciais
+    coins = 1000;
     gsSetJson(STORAGE_KEYS.COINS, coins);
   }
+
   return coins;
 }
 
@@ -47,21 +49,46 @@ function addCoins(delta) {
 
 // 🔥 RECOMPENSA DE BATALHA
 function rewardBattleVictory(enemyTeam = []) {
+
   let baseReward = 120;
 
-  // bônus por nível alto no time inimigo
   enemyTeam.forEach(d => {
     if (d.level === 'Ultimate') baseReward += 40;
     if (d.level === 'Mega') baseReward += 80;
   });
 
-  // chance de bônus aleatório
   if (Math.random() < 0.25) {
     baseReward += 50;
   }
 
   addCoins(baseReward);
+
   return baseReward;
+}
+
+// ---------- FAVICON DINÂMICO ----------
+
+function setUltimateFavicon() {
+
+  const favicon = document.getElementById("favicon");
+
+  if (!favicon) return;
+
+  favicon.href = "image/agumon-ultimate.png";
+
+  // volta para normal depois de 5 segundos
+  setTimeout(() => {
+    resetFavicon();
+  }, 5000);
+}
+
+function resetFavicon() {
+
+  const favicon = document.getElementById("favicon");
+
+  if (!favicon) return;
+
+  favicon.href = "image/agumon.png";
 }
 
 // utilitário
@@ -71,6 +98,7 @@ function isUltimate(digimon) {
 
 // ---------- STATS ----------
 function generateStats(digimon) {
+
   const levelWeight = {
     'Fresh': 0.6,
     'In Training': 0.75,
@@ -86,13 +114,16 @@ function generateStats(digimon) {
 
   let hash = 0;
   const name = digimon.name || '';
+
   for (let i = 0; i < name.length; i++) {
     hash = ((hash << 5) - hash) + name.charCodeAt(i);
     hash |= 0;
   }
+
   const abs = Math.abs(hash);
 
   const base = 45 + (abs % 20);
+
   const atk = Math.min(100, Math.round((base + (abs % 25)) * weight));
   const def = Math.min(100, Math.round((base + ((abs >> 3) % 25)) * weight));
   const esp = Math.min(100, Math.round((base + ((abs >> 6) % 25)) * weight));
@@ -101,22 +132,34 @@ function generateStats(digimon) {
 }
 
 function getStats(digimon) {
+
   const name = digimon.name;
+
   if (!name) return { atk: 10, def: 10, esp: 10 };
 
   try {
+
     const raw = localStorage.getItem(STORAGE_KEYS.STATS);
     const map = raw ? JSON.parse(raw) : {};
+
     if (map[name]) return map[name];
 
     const stats = generateStats(digimon);
+
     map[name] = stats;
+
     localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(map));
+
     return stats;
+
   } catch (e) {
+
     console.warn('Erro em getStats', e);
+
     return generateStats(digimon);
+
   }
+
 }
 
 // ---------- COLEÇÃO ----------
@@ -125,25 +168,39 @@ function getOwned() {
 }
 
 function addOwned(digimon) {
+
   if (!digimon || !digimon.name) return;
 
   const owned = getOwned();
+
   if (!owned.find(d => d.name === digimon.name)) {
+
     owned.push({
       name: digimon.name,
       img: digimon.img,
       level: digimon.level
     });
+
     gsSetJson(STORAGE_KEYS.OWNED, owned);
   }
 
   getStats(digimon);
+
+  // 🔥 troca favicon se for ultimate
+  if (isUltimate(digimon)) {
+    setUltimateFavicon();
+  }
+
 }
 
 function removeOwned(name) {
+
   const owned = getOwned();
+
   const filtered = owned.filter(d => d.name !== name);
+
   gsSetJson(STORAGE_KEYS.OWNED, filtered);
+
 }
 
 // ---------- ITENS ----------
@@ -152,9 +209,13 @@ function getItems() {
 }
 
 function addItem(item) {
+
   const items = getItems();
+
   items.push(item);
+
   gsSetJson(STORAGE_KEYS.ITEMS, items);
+
 }
 
 // ---------- TIME DE BATALHA ----------
@@ -163,14 +224,17 @@ function getBattleTeam() {
 }
 
 function setBattleTeam(team) {
+
   const cleaned = (team || []).slice(0, 2).map(d => ({
     name: d.name,
     img: d.img,
     level: d.level
   }));
+
   gsSetJson(STORAGE_KEYS.BATTLE, cleaned);
+
 }
 
 function clearBattleTeam() {
   gsSetJson(STORAGE_KEYS.BATTLE, []);
-}   
+}
