@@ -14,7 +14,7 @@ function gsGetJson(key, fallback) {
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : fallback;
   } catch (e) {
-    console.warn("Erro lendo storage", key, e);
+    console.warn('Erro lendo localStorage', key, e);
     return fallback;
   }
 }
@@ -23,7 +23,7 @@ function gsSetJson(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch (e) {
-    console.warn("Erro salvando storage", key, e);
+    console.warn('Erro salvando localStorage', key, e);
   }
 }
 
@@ -45,12 +45,13 @@ function setCoins(value) {
 }
 
 function addCoins(delta) {
-  const next = Math.max(0, getCoins() + Number(delta || 0));
+  const current = getCoins();
+  const next = Math.max(0, current + Number(delta || 0));
   setCoins(next);
   return next;
 }
 
-// ---------- PITY SYSTEM ----------
+// ---------- SISTEMA PITY (ANTI AZAR) ----------
 
 function getPity() {
   return gsGetJson(STORAGE_KEYS.PITY, 0);
@@ -76,7 +77,6 @@ function rollRarity() {
 
   const pity = increasePity();
 
-  // 🔥 Garantia de Ultimate a cada 10
   if (pity >= 10) {
     resetPity();
     return "Ultimate";
@@ -91,31 +91,52 @@ function rollRarity() {
   return "Rookie";
 }
 
-// ---------- SUMMON DIGIMON ----------
+// ---------- INVOCAR DIGIMON ----------
 
 function summonDigimon(pool) {
 
   const rarity = rollRarity();
 
-  const filtered = pool.filter(d => d.level === rarity);
+  const candidates = pool.filter(d => d.level === rarity);
 
-  if (!filtered.length) {
-    console.warn("Pool vazio para raridade:", rarity);
+  if (!candidates.length) {
+    console.warn("Nenhum Digimon da raridade:", rarity);
     return null;
   }
 
-  const chosen = filtered[Math.floor(Math.random() * filtered.length)];
+  const chosen = candidates[Math.floor(Math.random() * candidates.length)];
 
   addOwned(chosen);
 
   return chosen;
 }
 
-// ---------- FAVICON ----------
+// ---------- RECOMPENSA DE BATALHA ----------
+
+function rewardBattleVictory(enemyTeam = []) {
+
+  let baseReward = 120;
+
+  enemyTeam.forEach(d => {
+    if (d.level === 'Ultimate') baseReward += 40;
+    if (d.level === 'Mega') baseReward += 80;
+  });
+
+  if (Math.random() < 0.25) {
+    baseReward += 50;
+  }
+
+  addCoins(baseReward);
+
+  return baseReward;
+}
+
+// ---------- FAVICON DINÂMICO ----------
 
 function setUltimateFavicon() {
 
   const favicon = document.getElementById("favicon");
+
   if (!favicon) return;
 
   favicon.href = "image/agumon-ultimate.png";
@@ -128,15 +149,16 @@ function setUltimateFavicon() {
 function resetFavicon() {
 
   const favicon = document.getElementById("favicon");
+
   if (!favicon) return;
 
   favicon.href = "image/agumon.png";
 }
 
-// ---------- UTILS ----------
+// ---------- UTIL ----------
 
 function isUltimate(digimon) {
-  return digimon && digimon.level === "Ultimate";
+  return digimon && digimon.level === 'Ultimate';
 }
 
 // ---------- STATS ----------
@@ -144,18 +166,20 @@ function isUltimate(digimon) {
 function generateStats(digimon) {
 
   const levelWeight = {
-    Fresh: 0.6,
-    "In Training": 0.75,
-    Rookie: 0.9,
-    Champion: 1.05,
-    Ultimate: 1.2,
-    Mega: 1.35
+    'Fresh': 0.6,
+    'In Training': 0.75,
+    'In-Training': 0.75,
+    'Rookie': 0.9,
+    'Champion': 1.05,
+    'Ultimate': 1.2,
+    'Mega': 1.35
   };
 
-  const weight = levelWeight[digimon.level] || 0.95;
+  const level = digimon.level || 'Rookie';
+  const weight = levelWeight[level] || 0.95;
 
   let hash = 0;
-  const name = digimon.name || "";
+  const name = digimon.name || '';
 
   for (let i = 0; i < name.length; i++) {
     hash = ((hash << 5) - hash) + name.charCodeAt(i);
@@ -175,11 +199,13 @@ function generateStats(digimon) {
 function getStats(digimon) {
 
   const name = digimon.name;
+
   if (!name) return { atk: 10, def: 10, esp: 10 };
 
   try {
 
-    const map = gsGetJson(STORAGE_KEYS.STATS, {});
+    const raw = localStorage.getItem(STORAGE_KEYS.STATS);
+    const map = raw ? JSON.parse(raw) : {};
 
     if (map[name]) return map[name];
 
@@ -187,16 +213,18 @@ function getStats(digimon) {
 
     map[name] = stats;
 
-    gsSetJson(STORAGE_KEYS.STATS, map);
+    localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(map));
 
     return stats;
 
   } catch (e) {
 
-    console.warn("Erro em getStats", e);
+    console.warn('Erro em getStats', e);
+
     return generateStats(digimon);
 
   }
+
 }
 
 // ---------- COLEÇÃO ----------
@@ -227,6 +255,7 @@ function addOwned(digimon) {
   if (isUltimate(digimon)) {
     setUltimateFavicon();
   }
+
 }
 
 function removeOwned(name) {
@@ -253,7 +282,7 @@ function addItem(item) {
 
 }
 
-// ---------- TIME BATALHA ----------
+// ---------- TIME DE BATALHA ----------
 
 function getBattleTeam() {
   return gsGetJson(STORAGE_KEYS.BATTLE, []);
@@ -273,4 +302,95 @@ function setBattleTeam(team) {
 
 function clearBattleTeam() {
   gsSetJson(STORAGE_KEYS.BATTLE, []);
+}
+
+// ---------- IA COMBATE AUTOMÁTICO ----------
+
+function chooseAction(attacker, defender) {
+
+  const atkStats = getStats(attacker);
+  const defStats = getStats(defender);
+
+  const attackerHP = attacker.hp || 100;
+  const defenderHP = defender.hp || 100;
+
+  const normalDamage = Math.max(5, atkStats.atk - defStats.def / 2);
+  const specialDamage = Math.max(8, atkStats.esp - defStats.def / 3);
+
+  if (normalDamage >= defenderHP) {
+    return "attack";
+  }
+
+  if (attackerHP < 30 && specialDamage > normalDamage) {
+    return "special";
+  }
+
+  if (defStats.def > atkStats.atk) {
+    return "special";
+  }
+
+  return "attack";
+}
+
+function performTurn(attacker, defender) {
+
+  const action = chooseAction(attacker, defender);
+
+  const atkStats = getStats(attacker);
+  const defStats = getStats(defender);
+
+  let damage = 0;
+
+  if (action === "attack") {
+    damage = Math.max(5, atkStats.atk - defStats.def / 2);
+  } else {
+    damage = Math.max(8, atkStats.esp - defStats.def / 3);
+  }
+
+  defender.hp = Math.max(0, (defender.hp || 100) - damage);
+
+  return {
+    action,
+    damage,
+    defenderHP: defender.hp
+  };
+}
+
+function autoBattle(teamA, teamB) {
+
+  const a = { ...teamA[0], hp: 100 };
+  const b = { ...teamB[0], hp: 100 };
+
+  const log = [];
+  let turn = 0;
+
+  while (a.hp > 0 && b.hp > 0 && turn < 50) {
+
+    const resultA = performTurn(a, b);
+
+    log.push({
+      attacker: a.name,
+      action: resultA.action,
+      damage: resultA.damage
+    });
+
+    if (b.hp <= 0) break;
+
+    const resultB = performTurn(b, a);
+
+    log.push({
+      attacker: b.name,
+      action: resultB.action,
+      damage: resultB.damage
+    });
+
+    turn++;
+  }
+
+  const winner = a.hp > 0 ? a.name : b.name;
+
+  return {
+    winner,
+    log
+  };
 }
