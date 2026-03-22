@@ -3,12 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Loja de Itens</title>
+<title>Loja - Digimon</title>
 
 <style>
+/* =========================
+   🎨 TEMA / VARIÁVEIS
+========================= */
 :root{
   --bg:#020617;
   --card:#0f172a;
+  --glass:rgba(15,23,42,.7);
   --accent:#38bdf8;
   --success:#22c55e;
   --danger:#ef4444;
@@ -16,17 +20,19 @@
   --muted:#9ca3af;
 }
 
+/* RESET */
 *{box-sizing:border-box;}
-
 body{
   margin:0;
   font-family:system-ui;
   background:radial-gradient(circle at top,#111827,#000);
   color:var(--text);
-  padding:16px;
+  padding:18px;
 }
 
-/* HEADER */
+/* =========================
+   🧩 HEADER
+========================= */
 .header{
   display:flex;
   justify-content:space-between;
@@ -34,48 +40,55 @@ body{
   margin-bottom:20px;
 }
 
-.coins{
-  font-weight:bold;
-}
-
-/* BOTÃO VOLTAR */
 .back-btn{
-  background:transparent;
-  border:1px solid #334155;
-  padding:6px 12px;
+  border:none;
   border-radius:999px;
+  padding:7px 14px;
   cursor:pointer;
+  background:var(--glass);
   color:white;
+  border:1px solid rgba(56,189,248,.3);
   transition:.2s;
 }
 .back-btn:hover{
   background:#1e293b;
+  transform:translateY(-1px);
 }
 
-/* GRID */
+.coins{
+  font-weight:600;
+  font-size:1rem;
+}
+
+/* =========================
+   🛒 GRID
+========================= */
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:14px;
+  gap:16px;
 }
 
-/* CARD */
+/* =========================
+   📦 CARD
+========================= */
 .card{
-  background:var(--card);
-  border-radius:14px;
-  padding:12px;
-  border:1px solid #1e3a8a;
-  transition:.2s;
-  position:relative;
+  background:var(--glass);
+  backdrop-filter:blur(10px);
+  border-radius:16px;
+  padding:14px;
+  border:1px solid rgba(56,189,248,.2);
+  transition:.25s;
 }
 
 .card:hover{
-  transform:translateY(-3px);
-  box-shadow:0 10px 30px rgba(0,0,0,.6);
+  transform:translateY(-4px);
+  box-shadow:0 15px 35px rgba(0,0,0,.6);
 }
 
 .name{
-  font-weight:bold;
+  font-weight:700;
+  font-size:1rem;
 }
 
 .desc{
@@ -85,7 +98,7 @@ body{
 }
 
 .price{
-  font-weight:bold;
+  font-weight:600;
 }
 
 .owned{
@@ -93,11 +106,13 @@ body{
   color:#86efac;
 }
 
-/* BOTÕES */
+/* =========================
+   🔘 BOTÕES
+========================= */
 .actions{
   display:flex;
   gap:6px;
-  margin-top:8px;
+  margin-top:10px;
 }
 
 .buy{
@@ -106,13 +121,14 @@ body{
   border-radius:999px;
   padding:6px;
   cursor:pointer;
+  font-weight:600;
   background:linear-gradient(135deg,#22c55e,#4ade80);
-  font-weight:bold;
+  color:#052e16;
+  transition:.2s;
 }
 
-.buy:disabled{
-  opacity:.5;
-  cursor:not-allowed;
+.buy:hover{
+  transform:scale(1.05);
 }
 
 .buy.insufficient{
@@ -120,54 +136,67 @@ body{
   color:white;
 }
 
-/* LOG */
+.buy:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+/* =========================
+   📜 LOG
+========================= */
 .log{
   margin-top:20px;
-  background:#020617;
+  background:var(--glass);
+  border:1px solid rgba(148,163,184,.2);
   padding:10px;
-  border-radius:10px;
-  max-height:120px;
+  border-radius:12px;
+  max-height:140px;
   overflow:auto;
   font-size:.8rem;
 }
+
 </style>
 </head>
 
 <body>
 
+<!-- HEADER -->
 <div class="header">
-  <button class="back-btn" onclick="location.href='home.html'">⬅ Voltar</button>
-  <div class="coins">💰 <span id="coins">0</span></div>
+  <button class="back-btn" onclick="location.href='home.html'">
+    ⬅ Voltar
+  </button>
+  <div class="coins">
+    💰 <span id="coins">0</span>
+  </div>
 </div>
 
+<!-- GRID -->
 <div class="grid" id="grid"></div>
 
+<!-- LOG -->
 <div class="log" id="log"></div>
 
 <script>
-const COINS_KEY = 'dc_coins_v1';
-const ITEMS_KEY = 'dc_items_v1';
-
-const items = [
-  {id:'potion_small',name:'Poção +20HP',price:150},
-  {id:'potion_medium',name:'Poção +50HP',price:300},
-  {id:'atk_boost',name:'Booster ATK',price:260},
-  {id:'def_boost',name:'Escudo DEF',price:260},
-  {id:'xp_chip',name:'Chip XP',price:220},
-];
+/* =========================
+   💾 STORAGE
+========================= */
+const KEYS = {
+  coins:'dc_coins_v1',
+  items:'dc_items_v1'
+};
 
 function getCoins(){
-  return JSON.parse(localStorage.getItem(COINS_KEY)) ?? 1000;
+  return JSON.parse(localStorage.getItem(KEYS.coins)) ?? 1000;
 }
 function setCoins(v){
-  localStorage.setItem(COINS_KEY,JSON.stringify(v));
+  localStorage.setItem(KEYS.coins, JSON.stringify(v));
 }
 
 function getItems(){
-  return JSON.parse(localStorage.getItem(ITEMS_KEY)) ?? [];
+  return JSON.parse(localStorage.getItem(KEYS.items)) ?? [];
 }
 function setItems(v){
-  localStorage.setItem(ITEMS_KEY,JSON.stringify(v));
+  localStorage.setItem(KEYS.items, JSON.stringify(v));
 }
 
 function addItem(id){
@@ -182,69 +211,93 @@ function addItem(id){
 }
 
 function getQty(id){
-  const item = getItems().find(i=>i.id===id);
-  return item ? item.qty : 0;
+  return getItems().find(i=>i.id===id)?.qty || 0;
 }
 
+/* =========================
+   🛒 ITENS DA LOJA
+========================= */
+const shopItems = [
+  {id:'potion_small',name:'Poção +20HP',price:150},
+  {id:'potion_medium',name:'Poção +50HP',price:300},
+  {id:'atk_boost',name:'Booster ATK',price:260},
+  {id:'def_boost',name:'Escudo DEF',price:260},
+  {id:'xp_chip',name:'Chip XP',price:220},
+];
+
+/* =========================
+   📜 LOG
+========================= */
 function log(msg){
-  const div=document.createElement('div');
-  div.textContent=msg;
-  document.getElementById('log').prepend(div);
+  const el=document.createElement('div');
+  el.textContent=msg;
+  document.getElementById('log').prepend(el);
 }
 
+/* =========================
+   🎨 RENDER
+========================= */
 function render(){
-  document.getElementById('coins').textContent=getCoins();
+  document.getElementById('coins').textContent = getCoins();
 
-  const grid=document.getElementById('grid');
-  grid.innerHTML='';
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
 
-  items.forEach(it=>{
-    const coins=getCoins();
-    const qty=getQty(it.id);
+  shopItems.forEach(item=>{
+    const coins = getCoins();
+    const qty = getQty(item.id);
 
-    const card=document.createElement('div');
+    const card = document.createElement('div');
     card.className='card';
 
-    card.innerHTML=`
-      <div class="name">${it.name}</div>
+    card.innerHTML = `
+      <div class="name">${item.name}</div>
       <div class="desc">Item útil em batalha</div>
-      <div class="price">💰 ${it.price}</div>
+      <div class="price">💰 ${item.price}</div>
       <div class="owned">Você tem: ${qty}</div>
 
       <div class="actions">
-        <button class="buy" data-id="${it.id}" data-q="1">x1</button>
-        <button class="buy" data-id="${it.id}" data-q="5">x5</button>
+        <button class="buy" data-id="${item.id}" data-q="1">x1</button>
+        <button class="buy" data-id="${item.id}" data-q="5">x5</button>
       </div>
     `;
 
     grid.appendChild(card);
   });
 
-  document.querySelectorAll('.buy').forEach(btn=>{
-    const id=btn.dataset.id;
-    const q=parseInt(btn.dataset.q);
-    const item=items.find(i=>i.id===id);
-    const cost=item.price*q;
+  bindButtons();
+}
 
-    if(getCoins()<cost){
+/* =========================
+   🧠 EVENTOS
+========================= */
+function bindButtons(){
+  document.querySelectorAll('.buy').forEach(btn=>{
+    const id = btn.dataset.id;
+    const q  = parseInt(btn.dataset.q);
+
+    const item = shopItems.find(i=>i.id===id);
+    const cost = item.price * q;
+
+    if(getCoins() < cost){
       btn.classList.add('insufficient');
     }
 
-    btn.onclick=()=>{
-      let coins=getCoins();
+    btn.onclick = ()=>{
+      let coins = getCoins();
 
-      if(coins<cost){
+      if(coins < cost){
         log('❌ Coins insuficientes');
         return;
       }
 
-      coins-=cost;
+      coins -= cost;
       setCoins(coins);
 
       for(let i=0;i<q;i++) addItem(id);
 
-      btn.innerText='✔';
-      setTimeout(()=>btn.innerText='x'+q,600);
+      btn.textContent='✔';
+      setTimeout(()=>btn.textContent='x'+q,500);
 
       log(`Comprou ${q}x ${item.name}`);
       render();
@@ -252,6 +305,7 @@ function render(){
   });
 }
 
+/* INIT */
 render();
 </script>
 
